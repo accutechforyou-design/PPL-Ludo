@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PPL Ludo Board — Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Rajdhani:wght@500;600;700&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a1628;--surf:#111e3a;--card:#1a2d52;
+  --bdr:rgba(201,168,76,0.28);--bdr2:rgba(201,168,76,0.5);
+  --gold:#C9A84C;--gold2:#f0d060;--gold3:#e8c94a;
+  --txt:#f8f4ec;--mut:rgba(248,244,236,0.62);--dim:rgba(248,244,236,0.3);
+  --red:#c0392b;--green:#1e8449;--blue:#1a5276;--yellow:#d4ac0d;
+  --red-light:rgba(192,57,43,0.18);--green-light:rgba(30,132,73,0.18);
+  --blue-light:rgba(26,82,118,0.18);--yellow-light:rgba(212,172,13,0.18);
+  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:"Exo 2",sans-serif;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column;max-width:430px;margin:0 auto}
+
+/* TOP BAR */
+.topbar{background:rgba(10,22,40,0.98);border-bottom:1px solid var(--bdr);
+  padding:calc(var(--safe-top) + .6rem) 1rem .6rem;
+  display:flex;align-items:center;gap:.65rem;flex-shrink:0}
+.tlogo{width:38px;height:38px;border-radius:50%;border:2px solid var(--gold);
+  object-fit:contain;flex-shrink:0}
+.tlogo-fb{width:38px;height:38px;border-radius:50%;border:2px solid var(--gold);
+  background:var(--card);display:flex;align-items:center;justify-content:center;
+  font-family:"Cinzel",serif;font-weight:900;font-size:.8rem;color:var(--gold);flex-shrink:0}
+.tname{font-family:"Cinzel",serif;font-size:.88rem;font-weight:700;color:var(--gold);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tteam{font-family:"Rajdhani",sans-serif;font-size:.68rem;color:var(--mut);letter-spacing:.4px}
+.tscore-wrap{text-align:right;flex-shrink:0}
+.tscore{font-family:"Cinzel",serif;font-size:1.1rem;font-weight:900;color:var(--gold2)}
+.tscl{font-family:"Rajdhani",sans-serif;font-size:.55rem;color:var(--mut);
+  text-transform:uppercase;letter-spacing:1px}
+
+/* MAIN CONTENT */
+.main{flex:1;overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:.65rem;
+  padding-bottom:calc(64px + var(--safe-bot))}
+
+/* PROGRESS STRIP */
+.prog-wrap{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:.75rem}
+.prog-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.45rem}
+.prog-title{font-family:"Cinzel",serif;font-size:.78rem;font-weight:700;
+  color:var(--gold);letter-spacing:1px}
+.prog-count{font-family:"Rajdhani",sans-serif;font-size:.8rem;font-weight:600;color:var(--mut)}
+.prog-bar{height:9px;background:var(--card);border-radius:99px;overflow:hidden;
+  border:1px solid rgba(201,168,76,0.12)}
+.prog-fill{height:100%;border-radius:99px;
+  background:linear-gradient(90deg,#c0392b 0%,#d4ac0d 35%,#C9A84C 60%,#1e8449 100%);
+  transition:width .6s ease}
+.prog-cats{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.45rem}
+.pcat{display:flex;align-items:center;gap:.22rem;font-family:"Rajdhani",sans-serif;
+  font-size:.63rem;font-weight:600;color:var(--mut)}
+.pdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+/* LUDO BOARD */
+.board-outer{display:flex;justify-content:center}
+.ludo{
+  display:grid;
+  grid-template-columns:92px 1fr 92px;
+  grid-template-rows:92px 1fr 92px;
+  gap:3px;
+  width:100%;max-width:360px;
+  background:var(--bdr);
+  border:2px solid var(--gold);
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 0 40px rgba(201,168,76,0.1);
+}
+
+/* HOME CORNERS */
+.home{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:.2rem;position:relative}
+.home-r{background:rgba(192,57,43,0.25);border-right:1px solid rgba(192,57,43,0.4)}
+.home-g{background:rgba(30,132,73,0.25);border-bottom:1px solid rgba(30,132,73,0.4)}
+.home-b{background:rgba(26,82,118,0.25);border-left:1px solid rgba(26,82,118,0.4)}
+.home-y{background:rgba(212,172,13,0.25);border-top:1px solid rgba(212,172,13,0.4)}
+.home-label{font-family:"Cinzel",serif;font-size:.58rem;font-weight:700;
+  letter-spacing:.5px;text-transform:uppercase}
+.home-met{font-family:"Rajdhani",sans-serif;font-size:.7rem;font-weight:700;color:rgba(248,244,236,0.5)}
+.home-circle{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:1.2rem;border:2px solid;margin-bottom:.15rem}
+
+/* ARMS */
+.arm{display:flex;background:rgba(10,22,40,0.6)}
+.arm-top{flex-direction:column;justify-content:flex-end;padding:.25rem .2rem .2rem;gap:.2rem;
+  border-bottom:1px solid var(--bdr)}
+.arm-bot{flex-direction:column;justify-content:flex-start;padding:.2rem .2rem .25rem;gap:.2rem;
+  border-top:1px solid var(--bdr)}
+.arm-left{flex-direction:row;align-items:center;justify-content:flex-end;
+  padding:.2rem .2rem .2rem .25rem;gap:.2rem;border-right:1px solid var(--bdr)}
+.arm-right{flex-direction:row;align-items:center;justify-content:flex-start;
+  padding:.2rem .25rem .2rem .2rem;gap:.2rem;border-left:1px solid var(--bdr)}
+
+/* PATH SQUARES (member squares) */
+.psq{border-radius:7px;border:1.5px solid;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;cursor:pointer;position:relative;
+  transition:transform .15s,box-shadow .15s;text-align:center;overflow:hidden;padding:2px}
+.arm-top .psq,.arm-bot .psq{flex:1;width:100%;min-height:0}
+.arm-left .psq,.arm-right .psq{flex:1;height:100%;min-width:0}
+.psq:active{transform:scale(.95)}
+.psq.unmet{background:rgba(10,22,40,0.8)}
+.psq.done{opacity:.32;cursor:default;background:rgba(10,22,40,0.9)}
+.psq.done::after{content:"✓";position:absolute;font-size:1.3em;color:#27ae60;
+  font-weight:900;text-shadow:0 0 8px #27ae60}
+.psq:not(.done):hover{transform:scale(1.06);z-index:10}
+.psq-name{font-family:"Exo 2",sans-serif;font-weight:700;color:var(--txt);
+  font-size:6.5px;line-height:1.2;word-break:break-word}
+.psq-sub{font-family:"Rajdhani",sans-serif;font-weight:600;
+  font-size:5.5px;margin-top:1px;opacity:.75;line-height:1}
+.psq-num{position:absolute;top:2px;left:3px;font-size:5px;
+  font-family:"Rajdhani",sans-serif;font-weight:700;opacity:.5}
+
+/* red squares */
+.sq-r{border-color:var(--red)!important;background:var(--red-light)!important}
+.sq-r .psq-name{color:#f1948a}
+.sq-r .psq-sub{color:rgba(241,148,138,0.7)}
+/* green squares */
+.sq-g{border-color:var(--green)!important;background:var(--green-light)!important}
+.sq-g .psq-name{color:#82e0aa}
+.sq-g .psq-sub{color:rgba(130,224,170,0.7)}
+/* blue squares */
+.sq-b{border-color:var(--blue)!important;background:var(--blue-light)!important}
+.sq-b .psq-name{color:#7fb3d3}
+.sq-b .psq-sub{color:rgba(127,179,211,0.7)}
+/* yellow squares */
+.sq-y{border-color:var(--yellow)!important;background:var(--yellow-light)!important}
+.sq-y .psq-name{color:#f9e79f}
+.sq-y .psq-sub{color:rgba(249,231,159,0.7)}
+
+/* CENTER */
+.center{background:linear-gradient(135deg,rgba(192,57,43,0.12) 0%,
+  rgba(10,22,40,0.95) 30%,rgba(10,22,40,0.95) 70%,rgba(26,82,118,0.12) 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:.3rem;border:1px solid var(--bdr2);position:relative}
+.center::before{content:"";position:absolute;inset:8px;border-radius:8px;
+  border:1px solid rgba(201,168,76,0.15)}
+.center-logo{width:42px;height:42px;border-radius:50%;border:2px solid var(--gold);
+  object-fit:contain}
+.center-logo-fb{width:42px;height:42px;border-radius:50%;border:2px solid var(--gold);
+  background:var(--card);display:flex;align-items:center;justify-content:center;
+  font-family:"Cinzel",serif;font-weight:900;font-size:.7rem;color:var(--gold)}
+.center-name{font-family:"Cinzel",serif;font-size:.58rem;font-weight:700;
+  color:var(--gold);letter-spacing:.5px;text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.center-pct{font-family:"Cinzel",serif;font-size:1.4rem;font-weight:900;color:var(--gold2)}
+.center-sub{font-family:"Rajdhani",sans-serif;font-size:.6rem;color:var(--mut);
+  letter-spacing:.5px;text-transform:uppercase}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;max-width:430px;margin:0 auto;
+  height:calc(60px + var(--safe-bot));background:rgba(10,22,40,0.98);
+  border-top:1px solid var(--bdr);display:flex;align-items:flex-start;padding-top:6px;z-index:100}
+.nitem{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  cursor:pointer;color:var(--dim);padding:4px 0}
+.nitem.active{color:var(--gold)}
+.nicon{font-size:1.3rem;line-height:1}
+.nlbl{font-family:"Rajdhani",sans-serif;font-size:.55rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.5px}
+
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:200;
+  display:none;align-items:flex-end}
+.modal-ov.open{display:flex}
+.modal-sheet{background:#111e3a;border-radius:24px 24px 0 0;border-top:2px solid var(--bdr);
+  padding:1.4rem;padding-bottom:calc(1.4rem + var(--safe-bot));
+  width:100%;max-height:88vh;overflow-y:auto;
+  transform:translateY(100%);transition:transform .3s ease}
+.modal-ov.open .modal-sheet{transform:translateY(0)}
+.mhandle{width:40px;height:4px;background:rgba(201,168,76,0.35);border-radius:99px;
+  margin:0 auto 1.1rem}
+.mtitle{font-family:"Cinzel",serif;font-size:1rem;font-weight:700;
+  color:var(--gold);margin-bottom:.2rem;letter-spacing:1px}
+.msub{font-size:.82rem;color:var(--mut);margin-bottom:1.1rem;font-family:"Exo 2",sans-serif}
+.mhalf{background:rgba(192,57,43,0.12);border:1px solid rgba(192,57,43,0.35);
+  border-radius:10px;padding:.7rem;font-size:.78rem;color:#f1948a;margin-bottom:.9rem;display:none}
+.photo-area{border:2px dashed var(--bdr);border-radius:14px;padding:1.75rem;
+  text-align:center;cursor:pointer;margin-bottom:.9rem;transition:border-color .15s}
+.photo-area:active{border-color:var(--gold)}
+.photo-area.has-photo{border-color:#27ae60;border-style:solid}
+.photo-area img{width:100%;max-height:180px;object-fit:cover;border-radius:10px}
+.photo-icon{font-size:2.2rem;margin-bottom:.4rem}
+.photo-txt{font-size:.82rem;color:var(--mut);font-family:"Exo 2",sans-serif}
+.pts-row{background:var(--card);border-radius:12px;padding:.9rem;
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:1.1rem;border:1px solid var(--bdr)}
+.pts-lbl{font-size:.82rem;color:var(--mut);font-family:"Rajdhani",sans-serif;font-weight:600}
+.pts-val{font-family:"Cinzel",serif;font-size:1.3rem;font-weight:900;color:var(--gold2)}
+.pts-tag{font-size:.65rem;color:var(--gold);font-family:"Rajdhani",sans-serif;
+  background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.25);
+  border-radius:99px;padding:.15rem .5rem;margin-top:.15rem}
+.mbtns{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.btn-cancel{padding:.85rem;background:rgba(255,255,255,.05);color:var(--mut);
+  border:1px solid var(--bdr);border-radius:12px;font-size:.9rem;cursor:pointer;
+  font-family:"Rajdhani",sans-serif;font-weight:600}
+.btn-confirm{padding:.85rem;
+  background:linear-gradient(135deg,var(--gold),var(--gold3));
+  color:#0a1628;border:none;border-radius:12px;font-size:.9rem;font-weight:700;
+  cursor:pointer;font-family:"Rajdhani",sans-serif;letter-spacing:1px;
+  text-transform:uppercase;transition:opacity .15s}
+.btn-confirm:disabled{opacity:.38;cursor:not-allowed}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:#1a2d52;border:1px solid var(--bdr);border-radius:12px;
+  padding:.65rem 1.1rem;font-size:.82rem;color:var(--txt);z-index:500;
+  opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:#27ae60;color:#82e0aa}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <img class="tlogo" src="icons/ppl-logo.png" onerror="this.style.display='none';document.getElementById('tlogo-fb').style.display='flex'">
+  <div class="tlogo-fb" id="tlogo-fb" style="display:none">PPL</div>
+  <div style="flex:1;min-width:0">
+    <div class="tname" id="tname">Abhishek Shah</div>
+    <div class="tteam" id="tteam">Director · Demo</div>
+  </div>
+  <div class="tscore-wrap">
+    <div class="tscore" id="tscore">5,000</div>
+    <div class="tscl">Points</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- PROGRESS -->
+  <div class="prog-wrap">
+    <div class="prog-top">
+      <span class="prog-title">My Progress</span>
+      <span class="prog-count" id="prog-count">0 / 15 Met</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="prog-cats" id="prog-cats"></div>
+  </div>
+
+  <!-- LUDO BOARD -->
+  <div class="board-outer">
+  <div class="ludo" id="ludo">
+
+    <!-- Row 1: Green Home | Green Arm (top) | Red Home -->
+    <div class="home home-g">
+      <div class="home-circle" style="border-color:#1e8449;background:rgba(30,132,73,0.2)">🟢</div>
+      <div class="home-label" style="color:#82e0aa">Green</div>
+      <div class="home-met" id="hm-g">0/4</div>
+    </div>
+    <div class="arm arm-top" id="arm-g"></div>
+    <div class="home home-r">
+      <div class="home-circle" style="border-color:#c0392b;background:rgba(192,57,43,0.2)">🔴</div>
+      <div class="home-label" style="color:#f1948a">Red</div>
+      <div class="home-met" id="hm-r">0/4</div>
+    </div>
+
+    <!-- Row 2: Yellow Arm | Center | Blue Arm -->
+    <div class="arm arm-left" id="arm-y"></div>
+    <div class="center" id="center-box">
+      <img class="center-logo" src="icons/ppl-logo.png" onerror="this.style.display='none';document.getElementById('clf').style.display='flex'">
+      <div class="center-logo-fb" id="clf" style="display:none">PPL</div>
+      <div class="center-pct" id="cpct">0%</div>
+      <div class="center-name" id="cname">Abhishek Shah</div>
+      <div class="center-sub">Home</div>
+    </div>
+    <div class="arm arm-right" id="arm-b"></div>
+
+    <!-- Row 3: Yellow Home | Blue Arm (bottom) | Blue Home -->
+    <div class="home home-y">
+      <div class="home-circle" style="border-color:#d4ac0d;background:rgba(212,172,13,0.2)">🟡</div>
+      <div class="home-label" style="color:#f9e79f">Yellow</div>
+      <div class="home-met" id="hm-y">0/4</div>
+    </div>
+    <div class="arm arm-bot" id="arm-bl"></div>
+    <div class="home home-b">
+      <div class="home-circle" style="border-color:#1a5276;background:rgba(26,82,118,0.2)">🔵</div>
+      <div class="home-label" style="color:#7fb3d3">Blue</div>
+      <div class="home-met" id="hm-bl">0/3</div>
+    </div>
+
+  </div><!-- /ludo -->
+  </div><!-- /board-outer -->
+
+</div><!-- /main -->
+
+<!-- BOTTOM NAV -->
+<div class="bnav">
+  <div class="nitem active"><div class="nicon">🎲</div><div class="nlbl">Board</div></div>
+  <div class="nitem"><div class="nicon">🏆</div><div class="nlbl">Scores</div></div>
+  <div class="nitem"><div class="nicon">📅</div><div class="nlbl">Calendar</div></div>
+  <div class="nitem"><div class="nicon">👤</div><div class="nlbl">Profile</div></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-ov" id="modal">
+  <div class="modal-sheet">
+    <div class="mhandle"></div>
+    <div class="mtitle" id="m-title">Log Meeting</div>
+    <div class="msub" id="m-sub">Upload a selfie as proof</div>
+    <div class="mhalf" id="m-half">⚠️ Today is July 12 — you earn half points for this meeting.</div>
+    <div class="photo-area" id="photo-area" onclick="document.getElementById('photo-in').click()">
+      <div class="photo-icon">📸</div>
+      <div class="photo-txt">Tap to take photo or upload selfie</div>
+    </div>
+    <input type="file" id="photo-in" accept="image/*" style="display:none" onchange="handlePhoto(event)">
+    <div class="pts-row">
+      <div>
+        <div class="pts-lbl">Points you will earn</div>
+        <div class="pts-tag" id="m-tag">Regular</div>
+      </div>
+      <div class="pts-val" id="m-pts">+500</div>
+    </div>
+    <div class="mbtns">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-confirm" id="m-confirm" disabled onclick="confirmMeeting()">Confirm ✓</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+</div><!-- /app -->
+
+<script>
+// ── DEMO DATA ──
+const USER = { name:"Abhishek Shah", team:"Director" };
+
+const GOLDEN = ["Timir Shah","Dhruv Shah","Ketan Shah","Pankaj Ostwal","Dr Swagat Shah"];
+const SHARKS  = ["Aakash Mehta","Harshal Shah","Manan Shah","Dr. Vivek Mehta","Srishti Shah","Abhishek Shah"];
+const PTS_BASE = { golden:2000, sharks:1000, regular:500 };
+
+// Board: 15 members distributed across 4 colors (seeded demo)
+// Green=4, Red=4, Yellow=4, Blue=3
+const BOARD = {
+  g: [
+    {name:"Timir Shah",      cat:"golden",  pts:2000},
+    {name:"Anju Choradiya",  cat:"regular", pts:500},
+    {name:"Darshan Sanghavi",cat:"regular", pts:500},
+    {name:"Dhara Dalal",     cat:"regular", pts:500},
+  ],
+  r: [
+    {name:"Aakash Mehta",    cat:"sharks",  pts:1000},
+    {name:"Dimple Jhaveri",  cat:"regular", pts:500},
+    {name:"Hardik Kapadia",  cat:"regular", pts:500},
+    {name:"Aarjav Shah",     cat:"regular", pts:500},
+  ],
+  y: [
+    {name:"Dhruv Shah",      cat:"golden",  pts:2000},
+    {name:"Dr Swagat Shah",  cat:"golden",  pts:2000},
+    {name:"Alpesh Dholakia", cat:"regular", pts:500},
+    {name:"Mohit Lodha",     cat:"regular", pts:500},
+  ],
+  bl: [
+    {name:"Harshal Shah",    cat:"sharks",  pts:1000},
+    {name:"Ashesh Shah",     cat:"regular", pts:500},
+    {name:"Chirag Shah",     cat:"regular", pts:500},
+  ]
+};
+
+// Demo: some already met
+const MET = new Set(["Timir Shah","Aakash Mehta","Anju Choradiya"]);
+
+const COL_INFO = {
+  g:  {color:"#1e8449", light:"rgba(30,132,73,0.18)",   cls:"sq-g", label:"Green"},
+  r:  {color:"#c0392b", light:"rgba(192,57,43,0.18)",   cls:"sq-r", label:"Red"},
+  y:  {color:"#d4ac0d", light:"rgba(212,172,13,0.18)",  cls:"sq-y", label:"Yellow"},
+  bl: {color:"#1a5276", light:"rgba(26,82,118,0.18)",   cls:"sq-b", label:"Blue"},
+};
+
+let SELECTED = null, PHOTO_FILE = null;
+
+function catTag(m){
+  if(m.cat==="golden") return "⭐ Golden";
+  if(m.cat==="sharks") return "🦈 Sharks";
+  return "Regular";
+}
+
+function buildSquare(m, armKey, idx){
+  const c = COL_INFO[armKey];
+  const isMet = MET.has(m.name);
+  const div = document.createElement("div");
+  div.className = "psq " + c.cls + (isMet?" done":"");
+  div.setAttribute("data-name", m.name);
+  div.setAttribute("data-arm", armKey);
+  div.setAttribute("data-pts", m.pts);
+  div.setAttribute("data-cat", m.cat);
+  div.innerHTML =
+    "<div class=\"psq-num\">"+(idx+1)+"</div>" +
+    "<div class=\"psq-name\">" + m.name + "</div>" +
+    "<div class=\"psq-sub\">" + catTag(m) + "</div>";
+  if(!isMet){
+    div.addEventListener("click", ()=>{
+      openModal(m, armKey);
+    });
+  }
+  return div;
+}
+
+function buildBoard(){
+  ["g","r","y","bl"].forEach(key=>{
+    const arm = document.getElementById("arm-"+key);
+    arm.innerHTML = "";
+    BOARD[key].forEach((m,i)=>{
+      arm.appendChild(buildSquare(m, key, i));
+    });
+  });
+  updateStats();
+}
+
+function updateStats(){
+  let total=0, metCount=0;
+  const byArm={g:0,r:0,y:0,bl:0};
+  ["g","r","y","bl"].forEach(k=>{
+    BOARD[k].forEach(m=>{
+      total++;
+      if(MET.has(m.name)){metCount++;byArm[k]++;}
+    });
+  });
+  const pct = total?Math.round(metCount/total*100):0;
+  document.getElementById("prog-count").textContent = metCount+" / "+total+" Met";
+  document.getElementById("prog-fill").style.width = pct+"%";
+  document.getElementById("cpct").textContent = pct+"%";
+  document.getElementById("cname").textContent = USER.name;
+
+  // home counts
+  document.getElementById("hm-g").textContent  = byArm.g+"/"+BOARD.g.length;
+  document.getElementById("hm-r").textContent  = byArm.r+"/"+BOARD.r.length;
+  document.getElementById("hm-y").textContent  = byArm.y+"/"+BOARD.y.length;
+  document.getElementById("hm-bl").textContent = byArm.bl+"/"+BOARD.bl.length;
+
+  // cats
+  const cats = document.getElementById("prog-cats");
+  cats.innerHTML = Object.keys(COL_INFO).map(k=>{
+    const c=COL_INFO[k], mc=byArm[k], tot=BOARD[k].length;
+    return "<div class=\"pcat\"><div class=\"pdot\" style=\"background:"+c.color+"\"></div>"+mc+"/"+tot+" "+c.label+"</div>";
+  }).join("");
+
+  // score
+  let score=0;
+  ["g","r","y","bl"].forEach(k=>{
+    BOARD[k].filter(m=>MET.has(m.name)).forEach(m=>score+=m.pts);
+  });
+  document.getElementById("tscore").textContent = score.toLocaleString();
+}
+
+// ── MODAL ──
+function openModal(m, armKey){
+  SELECTED = {m, armKey};
+  PHOTO_FILE = null;
+  const today = new Date().toISOString().slice(0,10);
+  const isHalf = today === "2026-07-12";
+  const pts = isHalf ? Math.floor(m.pts/2) : m.pts;
+
+  document.getElementById("m-title").textContent = "Log Meeting — " + m.name;
+  document.getElementById("m-sub").textContent = m.name + " · " + catTag(m);
+  document.getElementById("m-half").style.display = isHalf?"block":"none";
+  document.getElementById("m-pts").textContent = "+" + (isHalf?pts:m.pts).toLocaleString();
+  document.getElementById("m-tag").textContent = catTag(m);
+  document.getElementById("photo-area").innerHTML =
+    "<div class=\"photo-icon\">📸</div><div class=\"photo-txt\">Tap to take photo or upload selfie</div>";
+  document.getElementById("photo-area").classList.remove("has-photo");
+  document.getElementById("m-confirm").disabled = true;
+  document.getElementById("modal").classList.add("open");
+}
+function closeModal(){
+  document.getElementById("modal").classList.remove("open");
+  SELECTED=null;PHOTO_FILE=null;
+}
+document.getElementById("modal").addEventListener("click",function(e){
+  if(e.target===this)closeModal();
+});
+function handlePhoto(e){
+  const f=e.target.files[0];if(!f)return;
+  PHOTO_FILE=f;
+  const url=URL.createObjectURL(f);
+  document.getElementById("photo-area").innerHTML="<img src=\""+url+"\" alt=\"photo\">";
+  document.getElementById("photo-area").classList.add("has-photo");
+  document.getElementById("m-confirm").disabled=false;
+}
+function confirmMeeting(){
+  if(!SELECTED||!PHOTO_FILE)return;
+  MET.add(SELECTED.m.name);
+  closeModal();
+  buildBoard();
+  toast("+" + SELECTED.m.pts.toLocaleString() + " pts — Meeting logged! 🎉","ok");
+}
+function toast(msg,type){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.className="toast show"+(type?" "+type:"");
+  setTimeout(()=>{t.className="toast";},2800);
+}
+
+buildBoard();
+</script>
+</body>
+</html>
