@@ -10,7 +10,6 @@
 html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-serif;overflow:hidden}
 #app{height:100%;display:flex;flex-direction:column;max-width:430px;margin:0 auto;background:#f0f0f0}
 
-/* TOP BAR */
 .topbar{background:#fff;border-bottom:2px solid #ddd;padding:.6rem 1rem;
   display:flex;align-items:center;gap:.7rem;flex-shrink:0;
   box-shadow:0 2px 6px rgba(0,0,0,.08)}
@@ -26,12 +25,10 @@ html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-ser
 .met-lbl{font-size:.54rem;font-family:'Rajdhani',sans-serif;font-weight:700;
   color:#aaa;letter-spacing:.8px;text-transform:uppercase}
 
-/* SCREENS */
 .screen{flex:1;overflow-y:auto;display:none;flex-direction:column;
   padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
 .screen.active{display:flex}
 
-/* BOARD SCREEN */
 #scr-board{padding:.55rem;gap:.5rem}
 
 .prog-wrap{background:#fff;border:1px solid #e0e0e0;border-radius:12px;
@@ -49,51 +46,42 @@ html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-ser
 .pdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
 .board-wrap{display:flex;justify-content:center;flex-shrink:0}
-.board{
-  width:100%;max-width:380px;aspect-ratio:1/1;
-  display:grid;
-  grid-template-columns:repeat(15,1fr);
-  grid-template-rows:repeat(15,1fr);
+.board{width:100%;max-width:380px;aspect-ratio:1/1;
+  display:grid;grid-template-columns:repeat(15,1fr);grid-template-rows:repeat(15,1fr);
   background:#bbb;border:3px solid #999;border-radius:10px;
   overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15);gap:1px}
 .cell{display:flex;align-items:center;justify-content:center;
   position:relative;overflow:hidden;background:#fff}
-/* home zones */
-.gh{background:#c8f5dc}
-.rh{background:#fdd9d7}
-.yh{background:#fef3cd}
-.bh{background:#cfe2ff}
+.gh{background:#c8f5dc} .rh{background:#fdd9d7}
+.yh{background:#fef3cd} .bh{background:#cfe2ff}
 .inner{background:#fff}
 .tok{width:65%;height:65%;border-radius:50%;border:2px solid rgba(0,0,0,.2);
   box-shadow:inset 0 2px 4px rgba(0,0,0,.2);flex-shrink:0}
-/* safe strips */
 .sG{background:#78d6a0}.sGe{background:#27ae60}
 .sR{background:#f5a09a}.sRe{background:#e74c3c}
 .sY{background:#fcd76a}.sYe{background:#d4ac0d}
 .sB{background:#90bef5}.sBe{background:#2980b9}
-/* center */
 .ctr{background:#efefef}
-/* path */
 .path{background:#fff}
-/* star */
 .star-sq{background:#fffde7}
-/* member squares */
 .mbr{cursor:pointer;position:relative}
 .mbr:active{filter:brightness(.82)}
-.mbr.done{cursor:default;filter:grayscale(.4) brightness(.8)}
-.mbr.done::after{content:'🏠';position:absolute;font-size:1em;
+.mbr.done{cursor:default;filter:grayscale(.3) brightness(.75)}
+.mbr.done::after{content:'🏠';position:absolute;font-size:1.1em;
   left:50%;top:50%;transform:translate(-50%,-50%);z-index:2}
-.mn{font-size:7.5px;font-weight:700;text-align:center;line-height:1.1;
+.mn{font-size:7.5px;font-weight:700;text-align:center;line-height:1.15;
   padding:1px;word-break:break-word;font-family:'Rajdhani',sans-serif;
-  color:#fff;pointer-events:none;z-index:1;display:block;max-width:100%}
+  color:#fff;pointer-events:none;z-index:1;display:block;max-width:100%;white-space:pre-line}
+/* Special member glow */
+.mbr.special{box-shadow:inset 0 0 0 2px rgba(255,255,255,.6)}
 
 .footer{text-align:center;padding:.4rem;
   font-size:.58rem;color:#aaa;font-family:'Rajdhani',sans-serif;flex-shrink:0}
 .footer b{color:#888}
 
-/* SCORES SCREEN */
+/* SCORES */
 #scr-scores{padding:.7rem;gap:.5rem}
-.scores-title{font-family:'Cinzel',serif;font-size:1rem;font-weight:700;
+.sec-title{font-family:'Cinzel',serif;font-size:.95rem;font-weight:700;
   color:#1a1a2e;text-align:center;padding:.3rem 0}
 .score-card{background:#fff;border-radius:12px;border:1px solid #e0e0e0;
   padding:.6rem .85rem;display:flex;align-items:center;gap:.65rem;
@@ -101,25 +89,46 @@ html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-ser
 .rank{font-family:'Cinzel',serif;font-size:.85rem;font-weight:900;
   color:#c9a84c;width:22px;flex-shrink:0;text-align:center}
 .sc-name{flex:1;font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:700;color:#222}
-.sc-team{font-size:.62rem;color:#aaa;font-family:'Exo 2',sans-serif}
-.sc-pts{font-family:'Cinzel',serif;font-size:.9rem;font-weight:700;color:#27ae60;text-align:right}
-.sc-met{font-size:.6rem;color:#aaa;font-family:'Rajdhani',sans-serif;text-align:right}
+.sc-team{font-size:.62rem;color:#aaa}
+.sc-pts{font-family:'Cinzel',serif;font-size:.9rem;font-weight:700;color:#27ae60}
+.sc-met{font-size:.6rem;color:#aaa;font-family:'Rajdhani',sans-serif}
 .rank-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 
-/* CALENDAR SCREEN */
-#scr-calendar{padding:.7rem;gap:.5rem}
-.cal-title{font-family:'Cinzel',serif;font-size:1rem;font-weight:700;
-  color:#1a1a2e;text-align:center;padding:.3rem 0}
-.cal-card{background:#fff;border-radius:12px;border-left:4px solid #27ae60;
-  padding:.75rem 1rem;box-shadow:0 1px 3px rgba(0,0,0,.05)}
-.cal-date{font-family:'Cinzel',serif;font-size:.78rem;font-weight:700;color:#c9a84c;margin-bottom:.2rem}
-.cal-event{font-family:'Rajdhani',sans-serif;font-size:.88rem;font-weight:700;color:#222}
-.cal-note{font-size:.72rem;color:#888;font-family:'Exo 2',sans-serif;margin-top:.15rem}
-.cal-badge{display:inline-block;padding:.15rem .5rem;border-radius:99px;
-  font-size:.6rem;font-family:'Rajdhani',sans-serif;font-weight:700;
-  text-transform:uppercase;letter-spacing:.5px;margin-top:.3rem}
+/* CALENDAR */
+#scr-calendar{padding:.65rem;gap:.55rem}
+.cal-note{background:#fff;border-radius:10px;border:1px solid #e0e0e0;
+  padding:.55rem .75rem;font-size:.72rem;color:#555;
+  font-family:'Rajdhani',sans-serif;font-weight:600}
+.cal-note b{color:#27ae60}
+.cal-month-wrap{background:#fff;border-radius:12px;border:1px solid #e0e0e0;
+  padding:.65rem;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.cal-month-title{font-family:'Cinzel',serif;font-size:.8rem;font-weight:700;
+  color:#1a1a2e;text-align:center;margin-bottom:.4rem}
+.cal-week-hdr{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px}
+.cal-wday{font-family:'Rajdhani',sans-serif;font-size:.6rem;font-weight:700;
+  color:#aaa;text-align:center;padding:.15rem 0;text-transform:uppercase}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day{border-radius:6px;min-height:34px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;position:relative;font-family:'Rajdhani',sans-serif}
+.cal-day.empty{background:transparent}
+.cal-day.out{background:#f5f5f5;opacity:.3}
+.cal-day.in{background:#f0f8f4;border:1px solid #ddeee5;cursor:default}
+.cal-day.today{background:#e8f8f0;border:1.5px solid #27ae60}
+.cal-day.has-meet{background:#27ae60}
+.cal-day .dnum{font-size:.72rem;font-weight:700;color:#555}
+.cal-day.in .dnum{color:#27ae60}
+.cal-day.has-meet .dnum{color:#fff}
+.cal-day.out .dnum{color:#aaa}
+.cal-day .dcnt{font-size:.65rem;font-weight:900;color:#fff;
+  background:#27ae60;border-radius:99px;padding:.05rem .28rem;
+  position:absolute;top:2px;right:2px;line-height:1.3}
+.cal-day.has-meet .dcnt{background:rgba(255,255,255,.3)}
+.cal-legend{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;padding:.25rem 0}
+.cleg{display:flex;align-items:center;gap:.25rem;
+  font-size:.6rem;font-family:'Rajdhani',sans-serif;color:#888}
+.cleg-dot{width:10px;height:10px;border-radius:3px}
 
-/* PROFILE SCREEN */
+/* PROFILE */
 #scr-profile{padding:.7rem;gap:.5rem;align-items:center}
 .prof-av{width:80px;height:80px;border-radius:50%;border:3px solid #c9a84c;
   background:#f5f5f5;display:flex;align-items:center;justify-content:center;
@@ -173,23 +182,21 @@ html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-ser
   font-family:'Rajdhani',sans-serif;font-weight:700}
 .bk{padding:.8rem;color:#fff;border:none;border-radius:10px;
   font-size:.88rem;font-weight:700;cursor:pointer;
-  font-family:'Rajdhani',sans-serif;letter-spacing:.5px;text-transform:uppercase;transition:opacity .15s}
+  font-family:'Rajdhani',sans-serif;letter-spacing:.5px;text-transform:uppercase}
 .bk:disabled{opacity:.3;cursor:not-allowed}
 
-/* HOME CELEBRATION */
+/* CELEBRATION */
 .celebrate{position:fixed;inset:0;z-index:500;
-  display:none;align-items:center;justify-content:center;flex-direction:column;gap:.5rem;
-  background:rgba(0,0,0,.75)}
+  display:none;align-items:center;justify-content:center;flex-direction:column;gap:.5rem}
 .celebrate.show{display:flex;animation:fadeIn .3s}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .cel-icon{font-size:4rem}
 .cel-msg{font-family:'Cinzel',serif;font-size:1.5rem;font-weight:900;
   color:#fff;text-align:center;line-height:1.3}
-.cel-sub{font-family:'Rajdhani',sans-serif;font-size:1rem;color:rgba(255,255,255,.75);text-align:center}
+.cel-sub{font-family:'Rajdhani',sans-serif;font-size:.95rem;color:rgba(255,255,255,.8);text-align:center}
 .cel-btn{margin-top:.8rem;padding:.7rem 2rem;border:2px solid #fff;
   border-radius:99px;color:#fff;background:transparent;
-  font-family:'Cinzel',serif;font-size:.85rem;font-weight:700;
-  cursor:pointer;letter-spacing:1px}
+  font-family:'Cinzel',serif;font-size:.85rem;font-weight:700;cursor:pointer}
 
 .toast{position:fixed;bottom:74px;left:50%;transform:translateX(-50%) translateY(8px);
   background:#333;border-radius:10px;padding:.55rem 1rem;font-size:.8rem;
@@ -200,7 +207,6 @@ html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-ser
 <body>
 <div id="app">
 
-<!-- TOP BAR -->
 <div class="topbar">
   <img class="tlogo" src="icons/ppl-logo.png"
     onerror="this.style.display='none';document.getElementById('tfb').style.display='flex'">
@@ -215,7 +221,7 @@ html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-ser
   </div>
 </div>
 
-<!-- BOARD SCREEN -->
+<!-- BOARD -->
 <div class="screen active" id="scr-board">
   <div class="prog-wrap">
     <div class="prog-top">
@@ -232,57 +238,37 @@ html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-ser
   </div>
 </div>
 
-<!-- SCORES SCREEN -->
+<!-- SCORES -->
 <div class="screen" id="scr-scores">
-  <div class="scores-title">🏆 Leaderboard</div>
+  <div class="sec-title">🏆 Leaderboard</div>
   <div id="scores-list"></div>
 </div>
 
-<!-- CALENDAR SCREEN -->
+<!-- CALENDAR -->
 <div class="screen" id="scr-calendar">
-  <div class="cal-title">📅 Event Schedule</div>
-  <div class="cal-card" style="border-color:#27ae60">
-    <div class="cal-date">June 12, 2026</div>
-    <div class="cal-event">PPL Ludo Begins 🎲</div>
-    <div class="cal-note">Start meeting members across all 4 color teams. Each meeting = 1,000 points.</div>
-    <span class="cal-badge" style="background:#e8f8f0;color:#27ae60">KICKOFF</span>
-  </div>
-  <div class="cal-card" style="border-color:#2980b9">
-    <div class="cal-date">June 12 – July 11, 2026</div>
-    <div class="cal-event">Meeting Period 🤝</div>
-    <div class="cal-note">Meet any 15 members assigned to you. No order restriction — meet anyone, anytime.</div>
-    <span class="cal-badge" style="background:#e8f0fd;color:#2980b9">ACTIVE</span>
-  </div>
-  <div class="cal-card" style="border-color:#d4ac0d">
-    <div class="cal-date">July 12, 2026</div>
-    <div class="cal-event">Final Day ⚡</div>
-    <div class="cal-note">Last day to log meetings. Points count for final standings.</div>
-    <span class="cal-badge" style="background:#fef9e7;color:#d4ac0d">DEADLINE</span>
-  </div>
-  <div class="cal-card" style="border-color:#e74c3c">
-    <div class="cal-date">July 12, 2026 — Evening</div>
-    <div class="cal-event">Results & Winners 🏆</div>
-    <div class="cal-note">Top scorers announced. Token reaches HOME!</div>
-    <span class="cal-badge" style="background:#fdecea;color:#e74c3c">FINALE</span>
+  <div class="sec-title">📅 Meeting Calendar</div>
+  <div class="cal-note">Showing <b>June 12 – July 12, 2026</b>. Numbers show how many members you met each day.</div>
+  <div id="cal-grid"></div>
+  <div class="cal-legend">
+    <div class="cleg"><div class="cleg-dot" style="background:#f0f8f4;border:1px solid #ddeee5"></div>In range</div>
+    <div class="cleg"><div class="cleg-dot" style="background:#27ae60"></div>Met someone</div>
+    <div class="cleg"><div class="cleg-dot" style="background:#e8f8f0;border:1.5px solid #27ae60"></div>Today</div>
+    <div class="cleg"><div class="cleg-dot" style="background:#f5f5f5;opacity:.5"></div>Outside range</div>
   </div>
 </div>
 
-<!-- PROFILE SCREEN -->
+<!-- PROFILE -->
 <div class="screen" id="scr-profile">
   <div class="prof-av" id="prof-av">AS</div>
-  <div class="prof-name" id="prof-name">Abhishek Shah</div>
-  <div class="prof-team" id="prof-team-lbl">Director</div>
+  <div class="prof-name" id="prof-name-el">Abhishek Shah</div>
+  <div class="prof-team" id="prof-team-el">Director</div>
   <div class="prof-stat">
     <span class="prof-sl">Members Met</span>
     <span class="prof-sv" id="pf-met">0 / 15</span>
   </div>
   <div class="prof-stat">
-    <span class="prof-sl">Total Points</span>
+    <span class="prof-sl">Points Earned</span>
     <span class="prof-sv" id="pf-pts" style="color:#27ae60">0 pts</span>
-  </div>
-  <div class="prof-stat">
-    <span class="prof-sl">Team Color</span>
-    <span class="prof-sv" id="pf-color">—</span>
   </div>
   <div class="prof-stat">
     <span class="prof-sl">Event Period</span>
@@ -290,19 +276,15 @@ html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-ser
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
+<!-- NAV -->
 <div class="bnav">
-  <div class="nit on" onclick="showTab('board',this)">
-    <div class="nico">🎲</div><div class="nlb">Board</div></div>
-  <div class="nit" onclick="showTab('scores',this)">
-    <div class="nico">🏆</div><div class="nlb">Scores</div></div>
-  <div class="nit" onclick="showTab('calendar',this)">
-    <div class="nico">📅</div><div class="nlb">Calendar</div></div>
-  <div class="nit" onclick="showTab('profile',this)">
-    <div class="nico">👤</div><div class="nlb">Profile</div></div>
+  <div class="nit on" onclick="showTab('board',this)"><div class="nico">🎲</div><div class="nlb">Board</div></div>
+  <div class="nit" onclick="showTab('scores',this)"><div class="nico">🏆</div><div class="nlb">Scores</div></div>
+  <div class="nit" onclick="showTab('calendar',this)"><div class="nico">📅</div><div class="nlb">Calendar</div></div>
+  <div class="nit" onclick="showTab('profile',this)"><div class="nico">👤</div><div class="nlb">Profile</div></div>
 </div>
 
-<!-- MEETING MODAL -->
+<!-- MODAL -->
 <div class="ov" id="ov">
   <div class="sheet" id="sh">
     <div class="handle"></div>
@@ -324,11 +306,11 @@ html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-ser
   </div>
 </div>
 
-<!-- HOME CELEBRATION OVERLAY -->
+<!-- CELEBRATION -->
 <div class="celebrate" id="cel" onclick="closeCelebrate()">
   <div class="cel-icon" id="cel-icon">🏠</div>
   <div class="cel-msg" id="cel-msg">GREEN GOES HOME!</div>
-  <div class="cel-sub" id="cel-sub">Meeting logged successfully</div>
+  <div class="cel-sub" id="cel-sub">+1,000 pts</div>
   <button class="cel-btn">Continue ▶</button>
 </div>
 
@@ -336,40 +318,41 @@ html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-ser
 </div>
 
 <script>
-// ── DATA ──────────────────────────────────────────────────
 const USER = {name:"Abhishek Shah", team:"Director"};
+const TODAY = new Date().toISOString().slice(0,10);
 
+// ── ARMS: 4+4+4+3=15 ─────────────────────────────────────
+// SPECIAL members (guaranteed 1 per board, 1000 pts): Dr Swagat Shah, Timir Shah, Dhruv Shah, Ketan Shah
 const ARMS = {
   G:{label:"Green",  hex:"#27ae60", icon:"🟢",
     members:[
-      {name:"Timir Shah",       team:"Carpadium"},
-      {name:"Anju Choradiya",   team:"Bodyline Healthcare"},
-      {name:"Darshan Sanghavi", team:"Bodyline Healthcare"},
-      {name:"Dhara Dalal",      team:"Legacy Link"},
+      {name:"Timir Shah",       team:"Carpadium",              special:true},
+      {name:"Anju Choradiya",   team:"Bodyline Healthcare",    special:false},
+      {name:"Darshan Sanghavi", team:"Bodyline Healthcare",    special:false},
+      {name:"Dhara Dalal",      team:"Legacy Link",            special:false},
     ]},
   R:{label:"Red",    hex:"#e74c3c", icon:"🔴",
     members:[
-      {name:"Dimple Jhaveri",   team:"Carpadium"},
-      {name:"Hardik Kapadia",   team:"Carpadium"},
-      {name:"Aarjav Shah",      team:"Jainam Global"},
-      {name:"Ketan Shah",       team:"Jainam Global"},
+      {name:"Dr Swagat Shah",   team:"Core Motion",            special:true},
+      {name:"Dimple Jhaveri",   team:"Carpadium",              special:false},
+      {name:"Hardik Kapadia",   team:"Carpadium",              special:false},
+      {name:"Aarjav Shah",      team:"Jainam Global",          special:false},
     ]},
   B:{label:"Blue",   hex:"#2980b9", icon:"🔵",
     members:[
-      {name:"Harshal Shah",     team:"LT"},
-      {name:"Chirag Shah",      team:"Swarratna Dev."},
-      {name:"Aakash Malu",      team:"Legacy Link"},
+      {name:"Dhruv Shah",       team:"VE Ventures",            special:true},
+      {name:"Harshal Shah",     team:"LT",                     special:false},
+      {name:"Chirag Shah",      team:"Swarratna Dev.",         special:false},
+      {name:"Aakash Malu",      team:"Legacy Link",            special:false},
     ]},
   Y:{label:"Yellow", hex:"#d4ac0d", icon:"🟡",
     members:[
-      {name:"Dhruv Shah",       team:"VE Ventures"},
-      {name:"Alpesh Dholakia",  team:"Core Motion"},
-      {name:"Mohit Lodha",      team:"Vanilla Ventures"},
-      {name:"Ashesh Shah",      team:"VE Ventures"},
+      {name:"Ketan Shah",       team:"Jainam Global",          special:true},
+      {name:"Alpesh Dholakia",  team:"Core Motion",            special:false},
+      {name:"Ashesh Shah",      team:"VE Ventures",            special:false},
     ]},
 };
 
-// Demo leaderboard data
 const LEADERBOARD = [
   {name:"Srishti Shah",   team:"Director",      met:15, pts:15000, color:"R"},
   {name:"Dr Utsav Shah",  team:"Bodyline",      met:12, pts:12000, color:"G"},
@@ -379,19 +362,28 @@ const LEADERBOARD = [
 ];
 
 const MET = new Set();
+// Track meetings per date: {"2026-06-14": 2}
+const MEET_LOG = {};
+
+// Demo: seed some sample meetings on past dates
+MEET_LOG["2026-06-14"] = 1;
+MEET_LOG["2026-06-18"] = 2;
+MEET_LOG["2026-06-25"] = 1;
+
 let SEL=null, PHOTO=null;
 
 // ── TABS ──────────────────────────────────────────────────
-function showTab(name, el) {
+function showTab(name, el){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nit').forEach(n=>n.classList.remove('on'));
   document.getElementById('scr-'+name).classList.add('active');
   el.classList.add('on');
   if(name==='scores') renderScores();
+  if(name==='calendar') renderCalendar();
   if(name==='profile') renderProfile();
 }
 
-// ── GRID ──────────────────────────────────────────────────
+// ── BOARD GRID ────────────────────────────────────────────
 function getBase(r,c){
   if(r<=5&&c<=5){
     if(r>=1&&r<=4&&c>=1&&c<=4){
@@ -432,15 +424,15 @@ function getBase(r,c){
 }
 
 function abbr(name){
-  const parts=name.split(' ');
-  if(parts.length>=2) return parts[0].substring(0,4)+'\n'+parts[1][0];
-  return parts[0].substring(0,5);
+  const p=name.split(' ');
+  if(p.length>=3) return p[0].charAt(0)+p[1].charAt(0)+'\n'+p[2].substring(0,4);
+  if(p.length>=2) return p[0].substring(0,4)+'\n'+p[1][0];
+  return p[0].substring(0,5);
 }
 
 function renderBoard(){
   const bd=document.getElementById('board');
   bd.innerHTML='';
-  // Build member map
   const MM={};
   ARMS.G.members.forEach((m,i)=>{MM[`${i+1},6`]={...m,arm:'G'};});
   ARMS.R.members.forEach((m,i)=>{MM[`6,${9+i}`]={...m,arm:'R'};});
@@ -457,39 +449,31 @@ function renderBoard(){
         const arm=ARMS[mem.arm];
         const done=MET.has(mem.name);
         div.classList.add('mbr');
-        if(done)div.classList.add('done');
+        if(done) div.classList.add('done');
+        if(mem.special) div.classList.add('special');
         div.style.background=arm.hex;
-        div.innerHTML=`<span class="mn">${abbr(mem.name)}</span>`;
-        if(!done)div.onclick=()=>openModal(mem,mem.arm);
+        div.innerHTML='<span class="mn">'+abbr(mem.name)+'</span>';
+        if(!done) div.onclick=()=>openModal(mem,mem.arm);
       } else {
         const d=getBase(r,c);
         switch(d.type){
           case'GH':div.classList.add('gh');break;
           case'GI':div.classList.add('gh','inner');break;
-          case'GT':div.classList.add('gh','inner');
-            div.innerHTML='<div class="tok" style="background:#27ae60"></div>';break;
+          case'GT':div.classList.add('gh','inner');div.innerHTML='<div class="tok" style="background:#27ae60"></div>';break;
           case'RH':div.classList.add('rh');break;
           case'RI':div.classList.add('rh','inner');break;
-          case'RT':div.classList.add('rh','inner');
-            div.innerHTML='<div class="tok" style="background:#e74c3c"></div>';break;
+          case'RT':div.classList.add('rh','inner');div.innerHTML='<div class="tok" style="background:#e74c3c"></div>';break;
           case'YH':div.classList.add('yh');break;
           case'YI':div.classList.add('yh','inner');break;
-          case'YT':div.classList.add('yh','inner');
-            div.innerHTML='<div class="tok" style="background:#d4ac0d"></div>';break;
+          case'YT':div.classList.add('yh','inner');div.innerHTML='<div class="tok" style="background:#d4ac0d"></div>';break;
           case'BH':div.classList.add('bh');break;
           case'BI':div.classList.add('bh','inner');break;
-          case'BT':div.classList.add('bh','inner');
-            div.innerHTML='<div class="tok" style="background:#2980b9"></div>';break;
-          case'SG':div.classList.add('sG');break;
-          case'SGe':div.classList.add('sGe');break;
-          case'SR':div.classList.add('sR');break;
-          case'SRe':div.classList.add('sRe');break;
-          case'SY':div.classList.add('sY');break;
-          case'SYe':div.classList.add('sYe');break;
-          case'SB':div.classList.add('sB');break;
-          case'SBe':div.classList.add('sBe');break;
-          case'STAR':div.classList.add('path','star-sq');
-            div.innerHTML='<span style="font-size:9px">⭐</span>';break;
+          case'BT':div.classList.add('bh','inner');div.innerHTML='<div class="tok" style="background:#2980b9"></div>';break;
+          case'SG':div.classList.add('sG');break; case'SGe':div.classList.add('sGe');break;
+          case'SR':div.classList.add('sR');break; case'SRe':div.classList.add('sRe');break;
+          case'SY':div.classList.add('sY');break; case'SYe':div.classList.add('sYe');break;
+          case'SB':div.classList.add('sB');break; case'SBe':div.classList.add('sBe');break;
+          case'STAR':div.classList.add('path','star-sq');div.innerHTML='<span style="font-size:9px">⭐</span>';break;
           case'CTR':
             div.classList.add('ctr');
             const cr=d.cr,cc=d.cc;
@@ -497,10 +481,8 @@ function renderBoard(){
             else if(cr===0&&cc===2)div.style.background='linear-gradient(225deg,#e74c3c 50%,#efefef 50%)';
             else if(cr===2&&cc===0)div.style.background='linear-gradient(45deg,#d4ac0d 50%,#efefef 50%)';
             else if(cr===2&&cc===2)div.style.background='linear-gradient(315deg,#2980b9 50%,#efefef 50%)';
-            else if(cr===1&&cc===1){
-              div.style.background='#fff';
-              div.innerHTML='<span style="font-size:6px;font-family:Cinzel,serif;font-weight:900;color:#666;letter-spacing:.3px">HOME</span>';
-            } else div.style.background='#e0e0e0';
+            else if(cr===1&&cc===1){div.style.background='#fff';div.innerHTML='<span style="font-size:6px;font-family:Cinzel,serif;font-weight:900;color:#666">HOME</span>';}
+            else div.style.background='#e0e0e0';
             break;
           default:div.classList.add('path');
         }
@@ -510,7 +492,6 @@ function renderBoard(){
   }
 }
 
-// ── STATS ─────────────────────────────────────────────────
 function updateStats(){
   let total=0,met=0;
   const byCnt={G:0,R:0,B:0,Y:0};
@@ -530,23 +511,52 @@ function updateStats(){
 function renderScores(){
   const el=document.getElementById('scores-list');
   const data=[...LEADERBOARD].sort((a,b)=>b.pts-a.pts);
+  const medals=['🥇','🥈','🥉'];
   el.innerHTML=data.map((p,i)=>{
     const arm=ARMS[p.color];
-    const medals=['🥇','🥈','🥉'];
-    const rank=i<3?medals[i]:(i+1);
-    return `<div class="score-card">
-      <div class="rank">${rank}</div>
-      <div class="rank-dot" style="background:${arm.hex}"></div>
-      <div style="flex:1;min-width:0">
-        <div class="sc-name">${p.name}</div>
-        <div class="sc-team">${p.team}</div>
-      </div>
-      <div style="text-align:right">
-        <div class="sc-pts">${p.pts.toLocaleString()} pts</div>
-        <div class="sc-met">${p.met}/15 met</div>
-      </div>
-    </div>`;
+    return '<div class="score-card"><div class="rank">'+(i<3?medals[i]:(i+1))+'</div>'+
+      '<div class="rank-dot" style="background:'+arm.hex+'"></div>'+
+      '<div style="flex:1;min-width:0"><div class="sc-name">'+p.name+'</div><div class="sc-team">'+p.team+'</div></div>'+
+      '<div style="text-align:right"><div class="sc-pts">'+p.pts.toLocaleString()+' pts</div>'+
+      '<div class="sc-met">'+p.met+'/15 met</div></div></div>';
   }).join('');
+}
+
+// ── CALENDAR ──────────────────────────────────────────────
+function renderCalendar(){
+  const el=document.getElementById('cal-grid');
+  const start=new Date('2026-06-12');
+  const end=new Date('2026-07-12');
+  const days=['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+  function makeMonth(year, month, mname){
+    const firstDay=new Date(year,month,1).getDay();
+    const daysInMonth=new Date(year,month+1,0).getDate();
+    let cells='';
+    for(let i=0;i<firstDay;i++) cells+='<div class="cal-day empty"></div>';
+    for(let d=1;d<=daysInMonth;d++){
+      const date=new Date(year,month,d);
+      const ds=date.toISOString().slice(0,10);
+      const inRange=(date>=start&&date<=end);
+      const isToday=(ds===TODAY);
+      const cnt=MEET_LOG[ds]||0;
+      let cls='cal-day';
+      if(!inRange) cls+=' out';
+      else if(cnt>0) cls+=' in has-meet';
+      else if(isToday) cls+=' today';
+      else cls+=' in';
+      cells+='<div class="'+cls+'">'+
+        '<span class="dnum">'+d+'</span>'+
+        (cnt>0?'<span class="dcnt">'+cnt+'</span>':'')+
+        '</div>';
+    }
+    return '<div class="cal-month-wrap">'+
+      '<div class="cal-month-title">'+mname+'</div>'+
+      '<div class="cal-week-hdr">'+days.map(d=>'<div class="cal-wday">'+d+'</div>').join('')+'</div>'+
+      '<div class="cal-days">'+cells+'</div></div>';
+  }
+
+  el.innerHTML=makeMonth(2026,5,'June 2026')+makeMonth(2026,6,'July 2026');
 }
 
 // ── PROFILE ───────────────────────────────────────────────
@@ -555,8 +565,6 @@ function renderProfile(){
   Object.values(ARMS).forEach(a=>a.members.forEach(m=>{if(MET.has(m.name)){met++;pts+=1000;}}));
   document.getElementById('pf-met').textContent=met+' / 15';
   document.getElementById('pf-pts').textContent=pts.toLocaleString()+' pts';
-  const initials=USER.name.split(' ').map(w=>w[0]).join('').slice(0,2);
-  document.getElementById('prof-av').textContent=initials;
 }
 
 // ── MODAL ─────────────────────────────────────────────────
@@ -565,9 +573,9 @@ function openModal(mem,armKey){
   const arm=ARMS[armKey];
   document.getElementById('sh').style.borderColor=arm.hex;
   document.getElementById('bok').style.background=arm.hex;
-  document.getElementById('mt').textContent='Meet '+mem.name;
+  document.getElementById('mt').textContent='Meet '+mem.name+(mem.special?' ⭐':'');
   document.getElementById('ms').textContent=mem.name+' · '+mem.team+' · '+arm.label+' Team';
-  document.getElementById('pa').innerHTML='<div class="pi">📸</div><div class="pt">Tap to take selfie or upload photo</div>';
+  document.getElementById('pa').innerHTML='<div class="pi">📸</div><div class="pt">Tap to upload selfie as proof</div>';
   document.getElementById('pa').classList.remove('hp');
   document.getElementById('bok').disabled=true;
   document.getElementById('ov').classList.add('open');
@@ -585,23 +593,19 @@ function confirmMeet(){
   if(!SEL||!PHOTO)return;
   const arm=ARMS[SEL.armKey];
   MET.add(SEL.mem.name);
+  // Log to date
+  MEET_LOG[TODAY]=(MEET_LOG[TODAY]||0)+1;
   closeModal();
   renderBoard();
   updateStats();
-  // Show celebration
+  // Celebration
+  document.getElementById('cel').style.background='rgba(0,0,0,.85)';
   document.getElementById('cel-icon').textContent=arm.icon+'🏠';
   document.getElementById('cel-msg').textContent=arm.label.toUpperCase()+' GOES HOME!';
-  document.getElementById('cel-sub').textContent=SEL.mem.name+' meeting logged · +1,000 pts';
-  document.getElementById('cel').style.background='rgba(0,0,0,.8)';
+  document.getElementById('cel-sub').textContent=SEL.mem.name+' · Meeting logged · +1,000 pts';
   document.getElementById('cel').classList.add('show');
 }
 function closeCelebrate(){document.getElementById('cel').classList.remove('show');}
-
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.className='toast show';
-  setTimeout(()=>{t.className='toast';},2800);
-}
 
 renderBoard();
 updateStats();
