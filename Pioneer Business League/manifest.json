@@ -1,0 +1,23 @@
+{
+  "name": "PPL Ludo \u2014 Pioneer LT 12",
+  "short_name": "PPL Ludo",
+  "description": "Pioneer Power League LT 12 P2P Activity Tracker",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0e1a",
+  "theme_color": "#0f0e1a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/ppl-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/ppl-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
