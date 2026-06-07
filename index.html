@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f0e1a">
+<title>PPL Ludo | Pioneer LT 12</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/ppl-logo.png">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f0e1a;--surface:#1a1830;--card:#221f3d;--border:#2d2a50;
+  --accent:#4F46E5;--accent2:#7c3aed;--text:#e2e8f0;--muted:#94a3b8;--dim:#64748b;
+  --red:#ef4444;--green:#22c55e;--yellow:#ca8a04;--blue:#3b82f6;
+  --golden:#d97706;--sharks:#7c3aed;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.screen{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;overflow:hidden}
+.screen.active{display:flex}
+#s-splash{align-items:center;justify-content:center;gap:1rem}
+#s-splash img{width:180px;height:180px;object-fit:contain;border-radius:20px}
+#s-splash h2{font-size:1.1rem;color:var(--muted);font-weight:400}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-top:1rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+#s-auth{padding:0}
+.auth-scroll{flex:1;overflow-y:auto;padding:2rem 1.5rem;padding-top:calc(var(--safe-top) + 2rem)}
+.auth-logo{text-align:center;margin-bottom:1.5rem}
+.auth-logo img{width:120px;height:120px;object-fit:contain;border-radius:16px}
+.auth-title{text-align:center;font-size:1.3rem;font-weight:700;color:var(--text);margin-bottom:.25rem}
+.auth-sub{text-align:center;font-size:.85rem;color:var(--muted);margin-bottom:2rem}
+.form-group{margin-bottom:1.25rem}
+.form-group label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:.4rem;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.form-group select,.form-group input{width:100%;padding:.8rem 1rem;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:1rem;outline:none;appearance:none;-webkit-appearance:none}
+.form-group select:focus,.form-group input:focus{border-color:var(--accent)}
+.form-group select option{background:var(--surface);color:var(--text)}
+.btn-primary{width:100%;padding:.9rem;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;transition:opacity .15s}
+.btn-primary:active{opacity:.8}
+.btn-secondary{width:100%;padding:.8rem;background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:12px;font-size:.9rem;cursor:pointer;margin-top:.75rem}
+.demo-sep{text-align:center;color:var(--dim);font-size:.8rem;margin:1rem 0;position:relative}
+.demo-btns{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.btn-demo{padding:.7rem .5rem;background:var(--card);border:1.5px solid var(--border);border-radius:10px;color:var(--muted);font-size:.8rem;cursor:pointer;text-align:center}
+#s-main{padding-bottom:calc(60px + var(--safe-bot))}
+.top-bar{padding:calc(var(--safe-top) + .75rem) 1rem .75rem;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;flex-shrink:0}
+.top-logo{width:40px;height:40px;object-fit:contain;border-radius:8px;flex-shrink:0}
+.top-info{flex:1;min-width:0}
+.top-name{font-size:.95rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-team{font-size:.75rem;color:var(--muted)}
+.top-score{text-align:right;flex-shrink:0}
+.top-pts{font-size:1.1rem;font-weight:800;color:var(--golden)}
+.top-label{font-size:.65rem;color:var(--muted)}
+.tab-content{flex:1;overflow:hidden;position:relative}
+.tab-pane{position:absolute;inset:0;overflow-y:auto;display:none;padding:1rem}
+.tab-pane.active{display:block}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:calc(60px + var(--safe-bot));background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:flex-start;padding-top:6px;z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0;color:var(--dim);transition:color .15s}
+.nav-item.active{color:var(--accent)}
+.nav-icon{font-size:1.4rem;line-height:1}
+.nav-label{font-size:.6rem;font-weight:500;text-transform:uppercase;letter-spacing:.3px}
+.board-container{display:flex;flex-direction:column;align-items:center;gap:1rem;padding-bottom:1rem}
+.progress-bar-wrap{width:100%;background:var(--surface);border-radius:12px;padding:1rem;border:1px solid var(--border)}
+.pb-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem}
+.pb-title{font-size:.85rem;font-weight:600;color:var(--text)}
+.pb-count{font-size:.85rem;color:var(--muted)}
+.pb-track{height:10px;background:var(--card);border-radius:99px;overflow:hidden}
+.pb-fill{height:100%;background:linear-gradient(90deg,#4F46E5,#7c3aed);border-radius:99px;transition:width .5s}
+.pb-categories{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem}
+.pb-cat{display:flex;align-items:center;gap:.3rem;font-size:.7rem;color:var(--muted)}
+.pb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.all-home-badge{width:100%;text-align:center;padding:.75rem;background:linear-gradient(135deg,#d97706,#f59e0b);border-radius:12px;font-size:.9rem;font-weight:700;color:#fff;margin-top:.5rem;letter-spacing:.5px}
+#hex-board{width:100%;max-width:360px;cursor:pointer}
+.arm-hint{font-size:.75rem;color:var(--dim);text-align:center;margin-top:-.5rem}
+.arm-detail-header{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;padding:.75rem 1rem;border-radius:12px;flex-shrink:0}
+.arm-back{background:none;border:none;color:var(--text);font-size:1.4rem;cursor:pointer;padding:0;flex-shrink:0}
+.arm-detail-title{font-size:1.1rem;font-weight:700;flex:1}
+.arm-detail-count{font-size:.8rem;color:var(--muted)}
+.member-list{display:flex;flex-direction:column;gap:.6rem}
+.member-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.9rem 1rem;display:flex;align-items:center;gap:.75rem;cursor:pointer;transition:border-color .15s}
+.member-card:active{opacity:.8}
+.member-card.met{border-left:4px solid var(--green)}
+.member-card.self{opacity:.5;cursor:default}
+.member-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;flex-shrink:0}
+.member-info{flex:1;min-width:0}
+.member-name{font-size:.9rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.member-team{font-size:.75rem;color:var(--muted)}
+.member-status{text-align:right;flex-shrink:0}
+.met-badge{font-size:.7rem;font-weight:600;color:var(--green);background:rgba(34,197,94,.15);padding:.2rem .5rem;border-radius:99px}
+.met-pts{font-size:.8rem;font-weight:600;color:var(--golden)}
+.unmet-pts{font-size:.75rem;color:var(--dim)}
+.lb-row{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.9rem 1rem;display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem}
+.lb-row.me{border:2px solid var(--accent)}
+.lb-rank{font-size:1rem;font-weight:800;color:var(--muted);width:28px;flex-shrink:0;text-align:center}
+.lb-rank.gold{color:#f59e0b}.lb-rank.silver{color:#9ca3af}.lb-rank.bronze{color:#cd7c30}
+.lb-info{flex:1;min-width:0}
+.lb-name{font-size:.9rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-team{font-size:.7rem;color:var(--muted)}
+.lb-score{text-align:right;flex-shrink:0}
+.lb-pts{font-size:1rem;font-weight:800;color:var(--golden)}
+.lb-met{font-size:.7rem;color:var(--muted)}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.cal-title{font-size:1.1rem;font-weight:700;color:var(--text)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day-label{text-align:center;font-size:.65rem;color:var(--muted);padding:.25rem 0;font-weight:600}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:.8rem;border-radius:8px;cursor:pointer;color:var(--text)}
+.cal-day.empty{cursor:default}
+.cal-day.inactive{color:var(--dim)}
+.cal-day.has-meetings{background:var(--accent);color:#fff;font-weight:700}
+.cal-day.half-day{background:#7c3aed;color:#fff;font-weight:700}
+.cal-legend{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.75rem}
+.cal-leg-item{display:flex;align-items:center;gap:.35rem;font-size:.7rem;color:var(--muted)}
+.cal-leg-dot{width:10px;height:10px;border-radius:3px}
+.day-meetings{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-top:1rem}
+.day-meetings-title{font-size:.85rem;font-weight:600;color:var(--muted);margin-bottom:.5rem}
+.day-meeting-item{font-size:.85rem;color:var(--text);padding:.4rem 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between}
+.day-meeting-item:last-child{border-bottom:none}
+.profile-header{background:var(--surface);border-radius:16px;padding:1.5rem;text-align:center;margin-bottom:1rem;border:1px solid var(--border)}
+.profile-avatar{width:72px;height:72px;border-radius:50%;margin:0 auto .75rem;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800}
+.profile-name{font-size:1.2rem;font-weight:800;color:var(--text);margin-bottom:.25rem}
+.profile-team{font-size:.85rem;color:var(--muted);margin-bottom:.75rem}
+.profile-badges{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}
+.badge{padding:.25rem .75rem;border-radius:99px;font-size:.75rem;font-weight:600}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.9rem;text-align:center}
+.stat-val{font-size:1.4rem;font-weight:800;margin-bottom:.2rem}
+.stat-label{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.section-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:1rem;overflow:hidden}
+.section-header{padding:.9rem 1rem;font-size:.9rem;font-weight:600;color:var(--text);display:flex;align-items:center;gap:.5rem;cursor:pointer;user-select:none}
+.section-body{padding:.75rem 1rem;border-top:1px solid var(--border)}
+.rule-item{padding:.5rem 0;font-size:.85rem;color:var(--text);line-height:1.6;border-bottom:1px solid var(--border)}
+.rule-item:last-child{border-bottom:none}
+.rule-highlight{color:var(--golden);font-weight:600}
+.footer-credit{text-align:center;font-size:.75rem;color:var(--dim);margin-top:1rem;padding:.5rem}
+.btn-danger{width:100%;padding:.8rem;background:transparent;color:#ef4444;border:1.5px solid #ef4444;border-radius:12px;font-size:.9rem;cursor:pointer;margin-top:.5rem}
+.admin-tabs{display:flex;gap:.5rem;margin-bottom:1rem;overflow-x:auto;padding-bottom:.25rem}
+.admin-tab{padding:.5rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:99px;font-size:.8rem;cursor:pointer;white-space:nowrap;color:var(--muted);flex-shrink:0}
+.admin-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.admin-pane{display:none}.admin-pane.active{display:block}
+.form-group{margin-bottom:1.25rem}
+.input-row{display:flex;gap:.5rem;margin-bottom:.75rem}
+.input-row input,.input-row select{flex:1;padding:.7rem .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:.9rem;outline:none}
+.btn-sm{padding:.55rem 1rem;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn-warn{background:#d97706}.btn-red{background:#ef4444}
+.admin-member-row{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;font-size:.85rem}
+.admin-member-row .amr-name{flex:1;font-weight:600;color:var(--text)}
+.admin-member-row .amr-team{color:var(--muted);font-size:.75rem}
+.report-row{background:var(--surface);border-radius:10px;padding:.6rem .9rem;margin-bottom:.3rem;font-size:.8rem;color:var(--text);border:1px solid var(--border)}
+.report-row .rdate{color:var(--muted);font-size:.7rem}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:flex-end}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:var(--surface);border-radius:24px 24px 0 0;padding:1.5rem;padding-bottom:calc(1.5rem + var(--safe-bot));width:100%;max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s ease}
+.modal-overlay.open .modal-sheet{transform:translateY(0)}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:99px;margin:0 auto 1.25rem}
+.modal-title{font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.25rem}
+.modal-sub{font-size:.85rem;color:var(--muted);margin-bottom:1.25rem}
+.photo-upload-area{border:2px dashed var(--border);border-radius:16px;padding:2rem;text-align:center;cursor:pointer;margin-bottom:1rem;transition:border-color .15s}
+.photo-upload-area.has-photo{border-color:var(--accent)}
+.photo-upload-area img{width:100%;max-height:200px;object-fit:cover;border-radius:10px}
+.upload-icon{font-size:2.5rem;margin-bottom:.5rem}
+.upload-text{font-size:.85rem;color:var(--muted)}
+.pts-preview{background:var(--card);border-radius:12px;padding:1rem;display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
+.pts-preview .plabel{font-size:.85rem;color:var(--muted)}
+.pts-preview .ppts{font-size:1.3rem;font-weight:800;color:var(--golden)}
+.half-warning{background:rgba(124,58,237,.2);border:1px solid var(--sharks);border-radius:10px;padding:.75rem;font-size:.8rem;color:#c4b5fd;margin-bottom:1rem}
+.modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.btn-cancel{padding:.85rem;background:var(--card);color:var(--muted);border:1px solid var(--border);border-radius:12px;font-size:.95rem;cursor:pointer}
+.btn-confirm{padding:.85rem;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:.95rem;font-weight:600;cursor:pointer}
+.btn-confirm:disabled{opacity:.4;cursor:not-allowed}
+#s-admin{z-index:50}
+.admin-topbar{padding:calc(var(--safe-top) + .75rem) 1rem .75rem;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;flex-shrink:0}
+.admin-back{background:none;border:none;color:var(--text);font-size:1.4rem;cursor:pointer}
+.admin-topbar-title{font-size:1rem;font-weight:700;flex:1}
+.photo-modal{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:300;display:none;align-items:center;justify-content:center;flex-direction:column;gap:1rem}
+.photo-modal.open{display:flex}
+.photo-modal img{max-width:95vw;max-height:70vh;border-radius:12px;object-fit:contain}
+.photo-modal-close{padding:.6rem 2rem;background:var(--surface);border:1px solid var(--border);border-radius:99px;color:var(--text);font-size:.9rem;cursor:pointer}
+.photo-modal-info{color:var(--muted);font-size:.85rem;text-align:center}
+.toast{position:fixed;bottom:calc(80px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(20px);background:#1e293b;border:1px solid var(--border);border-radius:12px;padding:.75rem 1.25rem;font-size:.85rem;color:var(--text);z-index:500;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;max-width:90vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:#ef4444;color:#ef4444}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- SPLASH -->
+<div class="screen active" id="s-splash">
+  <img src="icons/ppl-logo.png" alt="PPL Logo" onerror="this.style.display='none'">
+  <h1 style="font-size:1.5rem;font-weight:900;color:var(--text)">PPL Ludo</h1>
+  <h2>Pioneer LT 12</h2>
+  <div class="spinner"></div>
+</div>
+
+<!-- AUTH -->
+<div class="screen" id="s-auth">
+  <div class="auth-scroll">
+    <div class="auth-logo"><img src="icons/ppl-logo.png" alt="PPL"></div>
+    <div class="auth-title">PPL Ludo</div>
+    <div class="auth-sub">Pioneer LT 12 — June 12 to July 12, 2026</div>
+    <div id="auth-login">
+      <div class="form-group">
+        <label>Your Name</label>
+        <select id="login-name"><option value="">— Select your name —</option></select>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-pass" placeholder="Enter password" autocomplete="current-password">
+      </div>
+      <button class="btn-primary" onclick="APP.doLogin()">Login</button>
+      <p style="text-align:center;font-size:.8rem;color:var(--muted);margin-top:.75rem;cursor:pointer" onclick="APP.showRegister()">First time? Set your password &rarr;</p>
+      <div class="demo-sep">Demo Accounts</div>
+      <div class="demo-btns">
+        <div class="btn-demo" onclick="APP.loginDemo('Srishti Shah')">&#127918; Srishti Shah<br><span style="font-size:.7rem;opacity:.7">Demo</span></div>
+        <div class="btn-demo" onclick="APP.loginDemo('Abhishek Shah')">&#127918; Abhishek Shah<br><span style="font-size:.7rem;opacity:.7">Demo</span></div>
+      </div>
+    </div>
+    <div id="auth-register" class="hidden">
+      <div class="form-group">
+        <label>Your Name</label>
+        <select id="reg-name"><option value="">— Select your name —</option></select>
+      </div>
+      <div class="form-group">
+        <label>Set Password</label>
+        <input type="password" id="reg-pass" placeholder="Create a password (min 6 chars)" autocomplete="new-password">
+      </div>
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" id="reg-pass2" placeholder="Confirm password" autocomplete="new-password">
+      </div>
+      <button class="btn-primary" onclick="APP.doRegister()">Create Account</button>
+      <button class="btn-secondary" onclick="APP.showLogin()">&larr; Back to Login</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="screen" id="s-main">
+  <div class="top-bar">
+    <img class="top-logo" src="icons/ppl-logo.png" alt="PPL" onerror="this.style.display='none'">
+    <div class="top-info">
+      <div class="top-name" id="top-name">—</div>
+      <div class="top-team" id="top-team">—</div>
+    </div>
+    <div class="top-score">
+      <div class="top-pts" id="top-pts">0</div>
+      <div class="top-label">POINTS</div>
+    </div>
+    <button style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:.25rem" onclick="APP.showAdmin()" id="admin-btn" class="hidden">&#9881;&#65039;</button>
+  </div>
+  <div class="tab-content">
+    <div class="tab-pane active" id="tab-board">
+      <div class="board-container">
+        <div class="progress-bar-wrap">
+          <div class="pb-row">
+            <span class="pb-title">My Progress</span>
+            <span class="pb-count" id="pb-count">0 / 26 met</span>
+          </div>
+          <div class="pb-track"><div class="pb-fill" id="pb-fill" style="width:0%"></div></div>
+          <div class="pb-categories" id="pb-cats"></div>
+          <div id="all-home-badge" class="all-home-badge hidden">&#127968; ALL HOME — Mission Complete!</div>
+        </div>
+        <svg id="hex-board" viewBox="0 0 350 350" xmlns="http://www.w3.org/2000/svg"></svg>
+        <p class="arm-hint">Tap any arm to see members</p>
+      </div>
+    </div>
+    <div class="tab-pane" id="tab-arm">
+      <div class="arm-detail-header" id="arm-detail-header">
+        <button class="arm-back" onclick="APP.showTab('board')">&larr;</button>
+        <div class="arm-detail-title" id="arm-detail-title">—</div>
+        <div class="arm-detail-count" id="arm-detail-count">—</div>
+      </div>
+      <div class="member-list" id="member-list"></div>
+    </div>
+    <div class="tab-pane" id="tab-lb">
+      <div id="lb-list"></div>
+    </div>
+    <div class="tab-pane" id="tab-cal">
+      <div class="cal-header"><div class="cal-title" id="cal-month-title">June – July 2026</div></div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-legend">
+        <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--accent)"></div>Meetings logged</div>
+        <div class="cal-leg-item"><div class="cal-leg-dot" style="background:#7c3aed"></div>July 12 (half pts)</div>
+      </div>
+      <div id="day-meetings-panel"></div>
+    </div>
+    <div class="tab-pane" id="tab-profile">
+      <div class="profile-header">
+        <div class="profile-avatar" id="profile-avatar"></div>
+        <div class="profile-name" id="profile-name">—</div>
+        <div class="profile-team" id="profile-team">—</div>
+        <div class="profile-badges" id="profile-badges"></div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-val" id="stat-total" style="color:var(--golden)">0</div><div class="stat-label">Total Points</div></div>
+        <div class="stat-card"><div class="stat-val" id="stat-met" style="color:var(--accent)">0/26</div><div class="stat-label">Members Met</div></div>
+        <div class="stat-card"><div class="stat-val" id="stat-golden" style="color:var(--golden)">0/5</div><div class="stat-label">Golden Met</div></div>
+        <div class="stat-card"><div class="stat-val" id="stat-sharks" style="color:var(--sharks)">0/6</div><div class="stat-label">Sharks Met</div></div>
+      </div>
+      <div class="section-card">
+        <div class="section-header" onclick="APP.toggleSection('rules')">&#128203; Ludo Rules <span style="margin-left:auto;font-size:.8rem;color:var(--muted)" id="rules-arrow">&#9660;</span></div>
+        <div class="section-body" id="rules-body" style="display:none">
+          <div class="rule-item">&#11088; Meeting a <span class="rule-highlight">Golden member</span> = <span class="rule-highlight">2000 points</span> each<br><small style="color:var(--muted)">Timir Shah, Dhruv Shah, Ketan Shah, Pankaj Ostwal, Dr Swagat Shah</small></div>
+          <div class="rule-item">&#129416; Meeting a <span class="rule-highlight">Sharks member</span> = <span class="rule-highlight">1000 points</span> each<br><small style="color:var(--muted)">Aakash Mehta, Harshal Shah, Manan Shah, Dr. Vivek Mehta, Srishti Shah, Abhishek Shah</small></div>
+          <div class="rule-item">&#128101; Meeting any other member (not from your own team) = <span class="rule-highlight">500 points</span> each</div>
+          <div class="rule-item">&#128247; P2P is counted only when a <span class="rule-highlight">photo is uploaded</span> as proof. Group P2Ps are NOT allowed.</div>
+          <div class="rule-item">&#128197; Activity period: <span class="rule-highlight">June 12 – July 12, 2026</span></div>
+          <div class="rule-item">&#9888;&#65039; Activities logged on <span class="rule-highlight">July 12 get HALF points</span>: Golden=1000, Sharks=500, Regular=250</div>
+          <div class="rule-item">&#127968; Complete all 26 members = <span class="rule-highlight">"All Home" badge</span></div>
+          <div class="rule-item">&#128202; Submit data before July 12 and share with directors for points calculation</div>
+        </div>
+      </div>
+      <div class="section-card">
+        <div class="section-header">&#8505;&#65039; About</div>
+        <div class="section-body">
+          <p style="font-size:.85rem;color:var(--muted);line-height:1.7">Pioneer Power League — LT 12 Member Activity Tracker. Track your P2P meetings across teams and earn points!</p>
+          <div class="footer-credit">Created by Srishti Shah, Abhishek Shah &amp; Dr Vivek Mehta (Poppy)</div>
+        </div>
+      </div>
+      <button class="btn-danger" onclick="APP.logout()">Logout</button>
+      <div style="height:1rem"></div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-board" onclick="APP.showTab('board')"><div class="nav-icon">&#127922;</div><div class="nav-label">Board</div></div>
+    <div class="nav-item" id="nav-lb" onclick="APP.showTab('lb')"><div class="nav-icon">&#127942;</div><div class="nav-label">Scores</div></div>
+    <div class="nav-item" id="nav-cal" onclick="APP.showTab('cal')"><div class="nav-icon">&#128197;</div><div class="nav-label">Calendar</div></div>
+    <div class="nav-item" id="nav-profile" onclick="APP.showTab('profile')"><div class="nav-icon">&#128100;</div><div class="nav-label">Profile</div></div>
+  </div>
+</div>
+
+<!-- ADMIN SCREEN -->
+<div class="screen" id="s-admin">
+  <div class="admin-topbar">
+    <button class="admin-back" onclick="APP.hideAdmin()">&larr;</button>
+    <div class="admin-topbar-title">Admin Panel</div>
+    <div style="font-size:.75rem;color:var(--muted)" id="admin-role-label"></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:1rem">
+    <div class="admin-tabs">
+      <div class="admin-tab active" onclick="APP.adminTab(this,'members')">Members</div>
+      <div class="admin-tab" onclick="APP.adminTab(this,'meetings')">Meetings</div>
+      <div class="admin-tab" onclick="APP.adminTab(this,'add')">Add Member</div>
+      <div class="admin-tab" onclick="APP.adminTab(this,'shuffle')" id="shuffle-tab">Shuffle</div>
+      <div class="admin-tab" onclick="APP.adminTab(this,'report')">Report</div>
+    </div>
+    <div class="admin-pane active" id="ap-members">
+      <div class="input-row"><input type="search" id="member-search" placeholder="Search name or team…" oninput="APP.filterAdminMembers()"></div>
+      <div id="admin-members-list"></div>
+    </div>
+    <div class="admin-pane" id="ap-meetings"><div id="admin-meetings-list"></div></div>
+    <div class="admin-pane" id="ap-add">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem">
+        <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">Add a new member — their Ludo board is generated automatically.</p>
+        <div class="form-group"><label>Full Name</label><input type="text" id="new-name" placeholder="e.g. Rahul Shah"></div>
+        <div class="form-group"><label>Team</label>
+          <select id="new-team">
+            <option value="">— Select team —</option>
+            <option>Bodyline Healthcare Network</option><option>Carpadium</option>
+            <option>Core Motion</option><option>Jainam Global</option>
+            <option>Legacy Link</option><option>Swarratna Developers</option>
+            <option>Vanilla Ventures</option><option>VE Ventures</option><option>Team Owner</option>
+          </select>
+        </div>
+        <button class="btn-primary" onclick="APP.addNewMember()">Add Member</button>
+      </div>
+    </div>
+    <div class="admin-pane" id="ap-shuffle">
+      <div style="background:rgba(124,58,237,.1);border:1px solid var(--sharks);border-radius:12px;padding:1rem;margin-bottom:1rem">
+        <p style="font-size:.85rem;color:#c4b5fd;line-height:1.7">&#9888;&#65039; <strong>Shuffle</strong> reassigns board members for all. Golden and Sharks stay fixed. All existing meeting scores are preserved. Only master admin can shuffle.</p>
+      </div>
+      <div id="shuffle-controls"></div>
+    </div>
+    <div class="admin-pane" id="ap-report">
+      <button class="btn-primary" onclick="APP.downloadReport()" style="margin-bottom:1rem">&#11015; Download CSV Report</button>
+      <div id="admin-report-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LOG MEETING MODAL -->
+<div class="modal-overlay" id="meet-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="meet-modal-title">Log Meeting</div>
+    <div class="modal-sub" id="meet-modal-sub">Upload a selfie as proof</div>
+    <div id="half-pts-warn" class="half-warning hidden">&#9888;&#65039; Today is July 12 — you earn half points for this meeting.</div>
+    <div class="photo-upload-area" id="photo-area" onclick="document.getElementById('photo-input').click()">
+      <div class="upload-icon">&#128247;</div>
+      <div class="upload-text">Tap to take photo / upload selfie</div>
+    </div>
+    <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="APP.handlePhotoSelect(event)">
+    <div class="pts-preview">
+      <span class="plabel">Points you will earn</span>
+      <span class="ppts" id="meet-pts">+500</span>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="APP.closeMeetModal()">Cancel</button>
+      <button class="btn-confirm" id="meet-confirm-btn" onclick="APP.confirmMeeting()" disabled>Confirm &#10003;</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW PHOTO MODAL -->
+<div class="photo-modal" id="photo-modal" onclick="APP.closePhotoModal()">
+  <img id="photo-modal-img" src="" alt="Meeting photo">
+  <div class="photo-modal-info" id="photo-modal-info"></div>
+  <button class="photo-modal-close" onclick="APP.closePhotoModal()">Close</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const HALF_DATE='2026-07-12';
+const ACT_START='2026-06-12';
+const ACT_END='2026-07-12';
+
+const COLORS={
+  red:{bg:'#ef4444',label:'RED'},
+  green:{bg:'#22c55e',label:'GREEN'},
+  yellow:{bg:'#ca8a04',label:'YELLOW'},
+  blue:{bg:'#3b82f6',label:'BLUE'},
+  golden:{bg:'#d97706',label:'GOLDEN ⭐'},
+  sharks:{bg:'#7c3aed',label:'SHARKS 🦈'},
+};
+
+const TEAM_COLOR={
+  'Bodyline Healthcare Network':'red','Legacy Link':'red',
+  'Carpadium':'green','Jainam Global':'green',
+  'Core Motion':'yellow','Vanilla Ventures':'yellow',
+  'VE Ventures':'blue','Swarratna Developers':'blue','Team Owner':'blue',
+  'LT':'sharks','Director':'sharks',
+};
+
+const GOLDEN_NAMES=['Timir Shah','Dhruv Shah','Ketan Shah','Pankaj Ostwal','Dr Swagat Shah'];
+const SHARKS_NAMES=['Aakash Mehta','Harshal Shah','Manan Shah','Dr. Vivek Mehta','Srishti Shah','Abhishek Shah'];
+const POINTS_VAL={golden:2000,sharks:1000,red:500,green:500,yellow:500,blue:500};
+const ADMINS=['Aakash Mehta','Harshal Shah','Manan Shah','Abhishek Shah','Dr. Vivek Mehta'];
+const MASTER_ADMIN='Srishti Shah';
+
+let ALL_MEMBERS_RAW=[
+  {name:'Anju Choradiya',team:'Bodyline Healthcare Network'},
+  {name:'Bijal Bhalani',team:'Bodyline Healthcare Network'},
+  {name:'Darshan Sanghavi',team:'Bodyline Healthcare Network'},
+  {name:'Dhrumil Damani',team:'Bodyline Healthcare Network'},
+  {name:'Mahavir Lunia',team:'Bodyline Healthcare Network'},
+  {name:'Mehul Shah',team:'Bodyline Healthcare Network'},
+  {name:'Pratik Shah',team:'Bodyline Healthcare Network'},
+  {name:'Rushabh Shah',team:'Bodyline Healthcare Network'},
+  {name:'Amrish Kuvadia',team:'Bodyline Healthcare Network'},
+  {name:'Jagat Dedhia',team:'Bodyline Healthcare Network'},
+  {name:'Shetal Shah',team:'Bodyline Healthcare Network'},
+  {name:'Ankur Patel',team:'Bodyline Healthcare Network'},
+  {name:'Aakash Malu',team:'Legacy Link'},
+  {name:'Aayush Shah',team:'Legacy Link'},
+  {name:'Arpit Shah',team:'Legacy Link'},
+  {name:'Bhartesh Shah',team:'Legacy Link'},
+  {name:'Dhara Dalal',team:'Legacy Link'},
+  {name:'Hiren Gandhi',team:'Legacy Link'},
+  {name:'Naman Vora',team:'Legacy Link'},
+  {name:'Saurabh Shah',team:'Legacy Link'},
+  {name:'Tarak Shah',team:'Legacy Link'},
+  {name:'Tejas Fetawal',team:'Legacy Link'},
+  {name:'Vaishal Shah',team:'Legacy Link'},
+  {name:'Sumit Jain',team:'Legacy Link'},
+  {name:'Dimple Jhaveri',team:'Carpadium'},
+  {name:'Ankit Bagadia',team:'Carpadium'},
+  {name:'Charmey Malde',team:'Carpadium'},
+  {name:'Dr Tejas Shah',team:'Carpadium'},
+  {name:'Hardik Kapadia',team:'Carpadium'},
+  {name:'Jignesh Shah ( H + J)',team:'Carpadium'},
+  {name:'Kanvesh Bagrecha',team:'Carpadium'},
+  {name:'Priyanka Shah',team:'Carpadium'},
+  {name:'Timir Shah',team:'Carpadium'},
+  {name:'Vishal Shah (Opti)',team:'Carpadium'},
+  {name:'Anuj Udani',team:'Carpadium'},
+  {name:'Aarjav Shah',team:'Jainam Global'},
+  {name:'Dhaval Shah (kaydee)',team:'Jainam Global'},
+  {name:'Jigneshbhai Sunrise',team:'Jainam Global'},
+  {name:'Ketan Shah',team:'Jainam Global'},
+  {name:'Piyush Shah',team:'Jainam Global'},
+  {name:'Rishita Shah',team:'Jainam Global'},
+  {name:'Shubham Jain',team:'Jainam Global'},
+  {name:'Shubham Shah',team:'Jainam Global'},
+  {name:'Vijay Shah',team:'Jainam Global'},
+  {name:'Vipul Shah',team:'Jainam Global'},
+  {name:'Manish Shah (Bobby)',team:'Jainam Global'},
+  {name:'Milind fadia',team:'Jainam Global'},
+  {name:'Alpesh Dholakia',team:'Core Motion'},
+  {name:'Dhaval Shah(Unico)',team:'Core Motion'},
+  {name:'Dr Swagat Shah',team:'Core Motion'},
+  {name:'Harsh Shah',team:'Core Motion'},
+  {name:'Ketan Sheth',team:'Core Motion'},
+  {name:'Lajju Jhaveri',team:'Core Motion'},
+  {name:'Poorav Doshi',team:'Core Motion'},
+  {name:'Purav Shah',team:'Core Motion'},
+  {name:'Raju Chokshi',team:'Core Motion'},
+  {name:'Vishal D Shah',team:'Core Motion'},
+  {name:'Sidharth Chovatia',team:'Core Motion'},
+  {name:'Mohit Lodha',team:'Vanilla Ventures'},
+  {name:'Arth Shah',team:'Vanilla Ventures'},
+  {name:'Deep gandhi',team:'Vanilla Ventures'},
+  {name:'Dhiren Gandhi',team:'Vanilla Ventures'},
+  {name:'Isha Shah',team:'Vanilla Ventures'},
+  {name:'Kathan Shah',team:'Vanilla Ventures'},
+  {name:'Mayur Shah',team:'Vanilla Ventures'},
+  {name:'Raja Shah',team:'Vanilla Ventures'},
+  {name:'Ravi Shah',team:'Vanilla Ventures'},
+  {name:'Rooshi Shah',team:'Vanilla Ventures'},
+  {name:'Zeel Shah',team:'Vanilla Ventures'},
+  {name:'Amit Chopra',team:'Vanilla Ventures'},
+  {name:'Ashesh Shah',team:'VE Ventures'},
+  {name:'Dhaval A Shah',team:'VE Ventures'},
+  {name:'Dhruv Shah',team:'VE Ventures'},
+  {name:'Dr Ankit Shah',team:'VE Ventures'},
+  {name:'Harit Kothari',team:'VE Ventures'},
+  {name:'Purvi Kotak',team:'VE Ventures'},
+  {name:'Rushit Shah',team:'VE Ventures'},
+  {name:'Sanjay Shah',team:'VE Ventures'},
+  {name:'Viral Gala',team:'VE Ventures'},
+  {name:'Jinaal Doshi',team:'VE Ventures'},
+  {name:'Prashant Mehta',team:'VE Ventures'},
+  {name:'Chirag Shah',team:'Swarratna Developers'},
+  {name:'Darshit Dalal',team:'Swarratna Developers'},
+  {name:'Dr. Vikesh Shah',team:'Swarratna Developers'},
+  {name:'Hemal Shah',team:'Swarratna Developers'},
+  {name:'Meet Shah',team:'Swarratna Developers'},
+  {name:'Mihir Shah',team:'Swarratna Developers'},
+  {name:'Maulin udani',team:'Swarratna Developers'},
+  {name:'Pankaj Ostwal',team:'Swarratna Developers'},
+  {name:'Prema Bagrecha',team:'Swarratna Developers'},
+  {name:'Varun Doshi',team:'Swarratna Developers'},
+  {name:'Rupen Shah',team:'Swarratna Developers'},
+  {name:'Dr Utsav Shah',team:'Team Owner'},
+  {name:'Shashwat Shah',team:'Team Owner'},
+  {name:'Dr. Krima Boradia',team:'Team Owner'},
+  {name:'Ruchir Sheth',team:'Team Owner'},
+  {name:'Monila Surana',team:'Team Owner'},
+  {name:'Umag Sheth',team:'Team Owner'},
+  {name:'Vishal K Shah',team:'Team Owner'},
+  {name:'Aakash Mehta',team:'LT'},
+  {name:'Harshal Shah',team:'LT'},
+  {name:'Manan Shah',team:'LT'},
+  {name:'Dr. Vivek Mehta',team:'Director'},
+  {name:'Srishti Shah',team:'Director'},
+  {name:'Abhishek Shah',team:'Director'},
+];
+
+function getColor(name,team){
+  if(GOLDEN_NAMES.includes(name)) return 'golden';
+  if(SHARKS_NAMES.includes(name)) return 'sharks';
+  return TEAM_COLOR[team]||'blue';
+}
+function getMember(name){ return ALL_MEMBERS_RAW.find(m=>m.name===name); }
+
+// ============================================================
+// SEEDED RNG & BOARD GENERATION
+// ============================================================
+function mulberry32(seed){
+  return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+}
+function strSeed(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return h;}
+function seededShuffle(arr,seed){
+  const rng=mulberry32(strSeed(seed)),a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+function generateBoard(memberName,memberTeam,shuffleSeed){
+  const memberColor=TEAM_COLOR[memberTeam]||'blue';
+  const pools={red:[],green:[],yellow:[],blue:[]};
+  ALL_MEMBERS_RAW.forEach(m=>{
+    if(m.team===memberTeam) return;
+    if(GOLDEN_NAMES.includes(m.name)||SHARKS_NAMES.includes(m.name)) return;
+    const c=TEAM_COLOR[m.team];
+    if(c&&pools[c]) pools[c].push(m.name);
+  });
+
+  const seed=memberName+(shuffleSeed||'v1');
+  const board={red:[],green:[],yellow:[],blue:[],golden:[...GOLDEN_NAMES],sharks:[...SHARKS_NAMES]};
+  const regColors=['red','green','yellow','blue'];
+  let remaining=15;
+
+  // Prefer non-own colors first, take up to 5 each
+  const order=regColors.slice().sort((a,b)=>a===memberColor?1:b===memberColor?-1:0);
+  for(const c of order){
+    if(remaining<=0) break;
+    const avail=seededShuffle(pools[c],seed+c);
+    const take=Math.min(avail.length,Math.min(5,remaining));
+    board[c]=avail.slice(0,take);
+    remaining-=take;
+  }
+  // Fill remaining from any pool
+  if(remaining>0){
+    for(const c of order){
+      if(remaining<=0) break;
+      const used=new Set(board[c]);
+      const more=seededShuffle(pools[c],seed+c+'2').filter(n=>!used.has(n));
+      const take=Math.min(more.length,remaining);
+      board[c]=[...board[c],...more.slice(0,take)];
+      remaining-=take;
+    }
+  }
+  return board;
+}
+
+// ============================================================
+// PASSWORD HASH
+// ============================================================
+async function hashPwd(p){
+  const e=new TextEncoder(),b=await crypto.subtle.digest('SHA-256',e.encode(p+'PPL2026LT12'));
+  return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+// ============================================================
+// FIREBASE
+// ============================================================
+const FB_CFG={
+  apiKey:"AIzaSyAH9xfyGWMqdpPyjpiXQZC6QrAssimO-sY",
+  authDomain:"ppl-ludo.firebaseapp.com",
+  projectId:"ppl-ludo",
+  messagingSenderId:"1068554631508",
+  appId:"1:1068554631508:web:b3f3cac888ffc10c57b0c1"
+};
+let db,FB_READY=false;
+try{firebase.initializeApp(FB_CFG);db=firebase.firestore();FB_READY=true;}catch(e){console.warn('Firebase:',e.message);}
+
+function nid(n){return n.toLowerCase().replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_');}
+async function dbGet(c,id){if(!FB_READY)return null;const d=await db.collection(c).doc(id).get();return d.exists?{id:d.id,...d.data()}:null;}
+async function dbSet(c,id,data){if(!FB_READY)return;await db.collection(c).doc(id).set(data,{merge:true});}
+async function dbAll(c){if(!FB_READY)return[];const s=await db.collection(c).get();return s.docs.map(d=>({id:d.id,...d.data()}));}
+async function dbQuery(c,...w){if(!FB_READY)return[];let q=db.collection(c);for(const[f,op,v]of w)q=q.where(f,op,v);const s=await q.get();return s.docs.map(d=>({id:d.id,...d.data()}));}
+
+async function uploadPhoto(file,mid){
+  const blob=await resizeImg(file,500);
+  return await new Promise(res=>{
+    const reader=new FileReader();
+    reader.onload=e=>res(e.target.result);
+    reader.readAsDataURL(blob);
+  });
+}
+async function resizeImg(file,max){
+  return new Promise(res=>{
+    const img=new Image(),url=URL.createObjectURL(file);
+    img.onload=()=>{
+      let w=img.width,h=img.height;
+      if(w>max||h>max){if(w>h){h=h*max/w;w=max;}else{w=w*max/h;h=max;}}
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);URL.revokeObjectURL(url);
+      c.toBlob(res,'image/jpeg',.65);
+    };img.src=url;
+  });
+}
+
+// ============================================================
+// LOCAL STORAGE
+// ============================================================
+const LS={
+  get(k){try{return JSON.parse(localStorage.getItem('ppl_'+k));}catch{return null;}},
+  set(k,v){try{localStorage.setItem('ppl_'+k,JSON.stringify(v));}catch{}},
+  del(k){try{localStorage.removeItem('ppl_'+k);}catch{}}
+};
+
+// ============================================================
+// APP STATE
+// ============================================================
+let STATE={user:null,board:null,meetings:[],allMembers:[],allMeetings:[],selectedMember:null,selectedPhoto:null,currentTab:'board',currentArm:null};
+
+// ============================================================
+// APP LOGIC
+// ============================================================
+const APP={};
+
+APP.init=async function(){
+  const names=ALL_MEMBERS_RAW.map(m=>m.name).sort();
+  ['login-name','reg-name'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel)return;
+    names.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;sel.appendChild(o);});
+  });
+  const sess=LS.get('session');
+  if(sess&&sess.name&&Date.now()<sess.expires){
+    if(sess.isDemo){await APP.loginDemo(sess.name);}
+    else{await APP.loadUser(sess.name);}
+  }else{APP.showScreen('s-auth');}
+};
+
+APP.showLogin=function(){document.getElementById('auth-login').classList.remove('hidden');document.getElementById('auth-register').classList.add('hidden');};
+APP.showRegister=function(){document.getElementById('auth-login').classList.add('hidden');document.getElementById('auth-register').classList.remove('hidden');};
+
+APP.doLogin=async function(){
+  const name=document.getElementById('login-name').value;
+  const pass=document.getElementById('login-pass').value;
+  if(!name){APP.toast('Select your name','error');return;}
+  if(!pass){APP.toast('Enter password','error');return;}
+  APP.toast('Logging in…');
+  try{
+    const hash=await hashPwd(pass);
+    let member=null;
+    if(FB_READY){member=await dbGet('members',nid(name));}
+    if(!member){const l=LS.get('members')||{};member=l[name];}
+    if(!member){APP.toast('Account not found. Register first.','error');return;}
+    if(member.passwordHash!==hash){APP.toast('Incorrect password','error');return;}
+    LS.set('session',{name,expires:Date.now()+30*24*60*60*1000});
+    await APP.loadUser(name);
+  }catch(e){APP.toast('Login error: '+e.message,'error');}
+};
+
+APP.doRegister=async function(){
+  const name=document.getElementById('reg-name').value;
+  const pass=document.getElementById('reg-pass').value;
+  const pass2=document.getElementById('reg-pass2').value;
+  if(!name){APP.toast('Select your name','error');return;}
+  if(pass.length<6){APP.toast('Password must be at least 6 characters','error');return;}
+  if(pass!==pass2){APP.toast("Passwords don’t match",'error');return;}
+  const m=getMember(name);
+  if(!m){APP.toast('Name not found','error');return;}
+  APP.toast('Creating account…');
+  try{
+    const hash=await hashPwd(pass);
+    if(FB_READY){const ex=await dbGet('members',nid(name));if(ex&&ex.passwordHash){APP.toast('Account exists. Login instead.','error');return;}}
+    const board=generateBoard(name,m.team);
+    const doc={name,team:m.team,color:getColor(name,m.team),passwordHash:hash,isAdmin:ADMINS.includes(name),isMasterAdmin:name===MASTER_ADMIN,isDemo:false,board,createdAt:new Date().toISOString()};
+    if(FB_READY)await dbSet('members',nid(name),doc);
+    const l=LS.get('members')||{};l[name]=doc;LS.set('members',l);
+    LS.set('session',{name,expires:Date.now()+30*24*60*60*1000});
+    await APP.loadUser(name);
+    APP.toast('Welcome to PPL Ludo!','success');
+  }catch(e){APP.toast('Error: '+e.message,'error');}
+};
+
+APP.loginDemo=async function(demoName){
+  APP.toast('Loading demo…');
+  const m=getMember(demoName)||{name:demoName,team:'Director'};
+  const board=generateBoard(demoName,m.team);
+  STATE.user={name:demoName,team:m.team,color:getColor(demoName,m.team),isAdmin:ADMINS.includes(demoName),isMasterAdmin:demoName===MASTER_ADMIN,isDemo:true,board};
+  STATE.board=board;
+  STATE.meetings=APP.genDemoMeetings(board,demoName);
+  LS.set('session',{name:demoName,expires:Date.now()+2*60*60*1000,isDemo:true});
+  APP.afterLogin();
+  APP.toast('Welcome '+demoName.split(' ')[0]+'! (Demo mode)','success');
+};
+
+APP.genDemoMeetings=function(board,user){
+  const dates=['2026-06-13','2026-06-15','2026-06-18','2026-06-20','2026-06-22','2026-06-25','2026-06-27','2026-06-30','2026-07-03','2026-07-06'];
+  const targets=[
+    board.golden[0],board.golden[1],
+    board.sharks.find(n=>n!==user),board.sharks.find((n,i)=>n!==user&&i>0),
+    ...(board.red||[]).slice(0,2),
+    ...(board.green||[]).slice(0,2),
+    ...(board.yellow||[]).slice(0,1),
+    ...(board.blue||[]).slice(0,1),
+  ].filter(Boolean).slice(0,10);
+  return targets.map((t,i)=>{
+    const tm=getMember(t);const color=getColor(t,tm?.team||'');
+    return{id:'demo_'+i,fromMember:user,toMember:t,toColor:color,points:POINTS_VAL[color]||500,date:dates[i]||'2026-06-20',timestamp:new Date(dates[i]||'2026-06-20').getTime(),photoURL:null,isDemo:true};
+  });
+};
+
+APP.loadUser=async function(name){
+  try{
+    let member=null;
+    if(FB_READY)member=await dbGet('members',nid(name));
+    if(!member){const l=LS.get('members')||{};member=l[name];}
+    if(!member){LS.del('session');APP.showScreen('s-auth');return;}
+    STATE.user=member;
+    if(!member.board){const m=getMember(name);member.board=generateBoard(name,m?m.team:member.team);if(FB_READY)await dbSet('members',nid(name),{board:member.board});}
+    STATE.board=member.board;
+    if(FB_READY){STATE.meetings=await dbQuery('meetings',['fromMember','==',name]);}
+    else{const a=LS.get('meetings')||[];STATE.meetings=a.filter(m=>m.fromMember===name);}
+    APP.afterLogin();
+  }catch(e){console.error(e);APP.toast('Error loading account','error');APP.showScreen('s-auth');}
+};
+
+APP.afterLogin=function(){
+  const u=STATE.user;
+  document.getElementById('top-name').textContent=u.name;
+  document.getElementById('top-team').textContent=u.team+(u.isDemo?' (Demo)':'');
+  if(u.isAdmin||u.isMasterAdmin)document.getElementById('admin-btn').classList.remove('hidden');
+  APP.showScreen('s-main');APP.showTab('board');APP.renderBoard();APP.renderProfile();
+};
+
+APP.logout=function(){
+  LS.del('session');
+  STATE={user:null,board:null,meetings:[],allMembers:[],allMeetings:[],selectedMember:null,selectedPhoto:null,currentTab:'board',currentArm:null};
+  document.getElementById('admin-btn').classList.add('hidden');
+  APP.showScreen('s-auth');APP.showLogin();
+};
+
+// ============================================================
+// BOARD
+// ============================================================
+APP.getMetSet=function(){return new Set(STATE.meetings.map(m=>m.toMember));};
+APP.getBoardFlat=function(){if(!STATE.board)return[];return['golden','sharks','red','green','yellow','blue'].flatMap(c=>STATE.board[c]||[]);};
+APP.calcScore=function(){return STATE.meetings.reduce((s,m)=>s+(m.points||0),0);};
+
+APP.renderBoard=function(){
+  if(!STATE.board)return;
+  const met=APP.getMetSet(),flat=APP.getBoardFlat();
+  const metCount=flat.filter(n=>met.has(n)).length,total=flat.length;
+  const score=APP.calcScore();
+  document.getElementById('top-pts').textContent=score.toLocaleString();
+  document.getElementById('pb-count').textContent=metCount+' / '+total+' met';
+  document.getElementById('pb-fill').style.width=(total?Math.round(metCount/total*100):0)+'%';
+  const cats=document.getElementById('pb-cats');
+  cats.innerHTML=['golden','sharks','red','green','yellow','blue'].map(c=>{
+    const m=(STATE.board[c]||[]).filter(n=>met.has(n)).length,t=(STATE.board[c]||[]).length;
+    return'<div class="pb-cat"><div class="pb-dot" style="background:'+COLORS[c].bg+'"></div>'+m+'/'+t+' '+COLORS[c].label+'</div>';
+  }).join('');
+  document.getElementById('all-home-badge').classList.toggle('hidden',!(metCount>=total&&total>0));
+  APP.drawHexSVG(met);
+};
+
+APP.drawHexSVG=function(met){
+  const svg=document.getElementById('hex-board');
+  const CX=175,CY=175;
+  const board=STATE.board;
+  const arms=[
+    {color:'red',angle:-90,members:board.red||[]},
+    {color:'green',angle:-30,members:board.green||[]},
+    {color:'yellow',angle:30,members:board.yellow||[]},
+    {color:'blue',angle:90,members:board.blue||[]},
+    {color:'golden',angle:150,members:board.golden||[]},
+    {color:'sharks',angle:210,members:board.sharks||[]},
+  ];
+  let h='<defs><filter id="glow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
+  // Hex bg
+  const hp=arms.map(a=>{const r=a.angle*Math.PI/180;return(CX+Math.cos(r)*158).toFixed(1)+','+(CY+Math.sin(r)*158).toFixed(1);}).join(' ');
+  h+='<polygon points="'+hp+'" fill="rgba(79,70,229,0.04)" stroke="rgba(79,70,229,0.15)" stroke-width="1"/>';
+  // Arms
+  arms.forEach(a=>{
+    const rad=a.angle*Math.PI/180,c=COLORS[a.color],count=a.members.length;
+    if(!count)return;
+    const ex=(CX+Math.cos(rad)*155).toFixed(1),ey=(CY+Math.sin(rad)*155).toFixed(1);
+    h+='<line x1="'+CX+'" y1="'+CY+'" x2="'+ex+'" y2="'+ey+'" stroke="'+c.bg+'" stroke-width="1.5" opacity="0.25"/>';
+    const start=44,end=148,spacing=(end-start)/count;
+    a.members.forEach((name,i)=>{
+      const dist=start+(i+0.5)*spacing;
+      const px=(CX+Math.cos(rad)*dist).toFixed(1),py=(CY+Math.sin(rad)*dist).toFixed(1);
+      const isMet=met.has(name),r=a.color==='golden'||a.color==='sharks'?13:12;
+      if(isMet){
+        h+='<circle cx="'+px+'" cy="'+py+'" r="'+r+'" fill="'+c.bg+'" stroke="'+c.bg+'" stroke-width="2" filter="url(#glow)"/>';
+        h+='<text x="'+px+'" y="'+(parseFloat(py)+4).toFixed(1)+'" text-anchor="middle" font-size="11" fill="white" font-weight="bold">✓</text>';
+      }else{
+        h+='<circle cx="'+px+'" cy="'+py+'" r="'+r+'" fill="#1a1830" stroke="'+c.bg+'" stroke-width="1.8" opacity="0.75"/>';
+        const ini=name.split(' ').filter(w=>w).slice(0,2).map(w=>w[0]).join('');
+        h+='<text x="'+px+'" y="'+(parseFloat(py)+3.5).toFixed(1)+'" text-anchor="middle" font-size="7.5" fill="'+c.bg+'" font-weight="700">'+ini+'</text>';
+      }
+    });
+    const ld=165,lx=(CX+Math.cos(rad)*ld).toFixed(1),ly=(CY+Math.sin(rad)*ld).toFixed(1);
+    const mc=a.members.filter(n=>met.has(n)).length;
+    h+='<text x="'+lx+'" y="'+(parseFloat(ly)+3).toFixed(1)+'" text-anchor="middle" font-size="8" font-weight="700" fill="'+c.bg+'">'+c.label+'</text>';
+    h+='<text x="'+lx+'" y="'+(parseFloat(ly)+14).toFixed(1)+'" text-anchor="middle" font-size="7" fill="'+c.bg+'" opacity="0.75">'+mc+'/'+a.members.length+'</text>';
+  });
+  const flat=APP.getBoardFlat(),mc2=flat.filter(n=>met.has(n)).length,tot=flat.length,pct=tot?Math.round(mc2/tot*100):0;
+  h+='<circle cx="'+CX+'" cy="'+CY+'" r="38" fill="#0f0e1a" stroke="#4F46E5" stroke-width="2.5"/>';
+  if(mc2>=tot&&tot>0){h+='<text x="'+CX+'" y="'+(CY-4)+'" text-anchor="middle" font-size="13" fill="#f59e0b" font-weight="900">ALL</text><text x="'+CX+'" y="'+(CY+11)+'" text-anchor="middle" font-size="13" fill="#f59e0b" font-weight="900">HOME</text>';}
+  else{h+='<text x="'+CX+'" y="'+(CY-3)+'" text-anchor="middle" font-size="19" font-weight="900" fill="white">'+pct+'%</text><text x="'+CX+'" y="'+(CY+13)+'" text-anchor="middle" font-size="8" fill="#94a3b8">HOME</text>';}
+  svg.innerHTML=h;
+  svg.onclick=function(e){
+    const rect=svg.getBoundingClientRect();
+    const sx=(e.clientX-rect.left)/rect.width*350,sy=(e.clientY-rect.top)/rect.height*350;
+    const dx=sx-175,dy=sy-175;
+    if(Math.sqrt(dx*dx+dy*dy)<42)return;
+    let angle=Math.atan2(dy,dx)*180/Math.PI;if(angle<0)angle+=360;
+    const map=[{c:'red',a:270},{c:'green',a:330},{c:'yellow',a:30},{c:'blue',a:90},{c:'golden',a:150},{c:'sharks',a:210}];
+    let best=null,min=Infinity;
+    map.forEach(m=>{let d=Math.abs(angle-m.a);if(d>180)d=360-d;if(d<min){min=d;best=m.c;}});
+    if(best)APP.showArm(best);
+  };
+};
+
+// ============================================================
+// ARM DETAIL
+// ============================================================
+APP.showArm=function(color){
+  const board=STATE.board||{},members=board[color]||[],met=APP.getMetSet(),c=COLORS[color];
+  STATE.currentArm=color;
+  const hdr=document.getElementById('arm-detail-header');
+  hdr.style.background=c.bg+'25';hdr.style.borderLeft='4px solid '+c.bg;
+  document.getElementById('arm-detail-title').textContent=c.label;
+  const mc=members.filter(n=>met.has(n)).length;
+  document.getElementById('arm-detail-count').textContent=mc+'/'+members.length+' met';
+  const list=document.getElementById('member-list');list.innerHTML='';
+  members.forEach(name=>{
+    const m=getMember(name)||{name,team:''},isMet=met.has(name),isSelf=name===STATE.user.name;
+    const pts=POINTS_VAL[color]||500,meeting=STATE.meetings.find(x=>x.toMember===name);
+    const ini=name.split(' ').filter(w=>w).slice(0,2).map(w=>w[0]).join('');
+    const card=document.createElement('div');
+    card.className='member-card'+(isMet?' met':'')+(isSelf?' self':'');
+    card.innerHTML='<div class="member-avatar" style="background:'+c.bg+'20;color:'+c.bg+'">'+ini+'</div><div class="member-info"><div class="member-name">'+name+'</div><div class="member-team">'+m.team+'</div></div><div class="member-status">'+(isMet?'<div class="met-badge">✓ Met</div><div class="met-pts">+'+(meeting?.points||pts).toLocaleString()+'</div>':isSelf?'<div style="font-size:.7rem;color:var(--dim)">You</div>':'<div class="unmet-pts">+'+pts.toLocaleString()+' pts</div>')+'</div>';
+    if(!isSelf){
+      if(isMet&&meeting?.photoURL)card.addEventListener('click',()=>APP.viewPhoto(meeting));
+      else if(isMet&&meeting?.isDemo)card.addEventListener('click',()=>APP.toast('Demo meeting — no real photo'));
+      else if(!isMet)card.addEventListener('click',()=>APP.openMeetModal(name,color,pts));
+    }
+    list.appendChild(card);
+  });
+  APP.showTab('arm');
+};
+
+// ============================================================
+// MEETING MODAL
+// ============================================================
+APP.openMeetModal=function(name,color,pts){
+  if(STATE.user.isDemo){APP.toast('Demo mode — tap arm members to see how it looks');return;}
+  const today=new Date().toISOString().slice(0,10),isHalf=today===HALF_DATE;
+  const actual=isHalf?Math.floor(pts/2):pts;
+  STATE.selectedMember={name,color,pts:actual};STATE.selectedPhoto=null;
+  document.getElementById('meet-modal-title').textContent='Log meeting with '+name.split(' ')[0];
+  document.getElementById('meet-modal-sub').textContent=name+' — '+(getMember(name)?.team||'');
+  document.getElementById('meet-pts').textContent='+'+actual.toLocaleString();
+  document.getElementById('half-pts-warn').classList.toggle('hidden',!isHalf);
+  document.getElementById('photo-area').innerHTML='<div class="upload-icon">📸</div><div class="upload-text">Tap to take photo / upload selfie</div>';
+  document.getElementById('photo-area').classList.remove('has-photo');
+  document.getElementById('meet-confirm-btn').disabled=true;
+  document.getElementById('meet-modal').classList.add('open');
+};
+APP.closeMeetModal=function(){document.getElementById('meet-modal').classList.remove('open');STATE.selectedMember=null;STATE.selectedPhoto=null;};
+APP.handlePhotoSelect=function(e){
+  const file=e.target.files[0];if(!file)return;STATE.selectedPhoto=file;
+  const url=URL.createObjectURL(file);
+  document.getElementById('photo-area').innerHTML='<img src="'+url+'" alt="photo">';
+  document.getElementById('photo-area').classList.add('has-photo');
+  document.getElementById('meet-confirm-btn').disabled=false;
+};
+APP.confirmMeeting=async function(){
+  if(!STATE.selectedPhoto){APP.toast('Upload a photo first','error');return;}
+  if(!STATE.selectedMember)return;
+  const btn=document.getElementById('meet-confirm-btn');btn.disabled=true;btn.textContent='Saving…';
+  try{
+    const{name:toName,pts,color:toColor}=STATE.selectedMember;
+    const fromName=STATE.user.name,today=new Date().toISOString().slice(0,10);
+    const mid=nid(fromName)+'_'+nid(toName)+'_'+Date.now();
+    let photoURL=null;
+    if(FB_READY){try{photoURL=await uploadPhoto(STATE.selectedPhoto,mid);}catch(e){console.warn('Photo upload:',e);}}
+    const meeting={id:mid,fromMember:fromName,toMember:toName,toColor,points:pts,date:today,timestamp:Date.now(),photoURL,savedAt:new Date().toISOString()};
+    if(FB_READY)await dbSet('meetings',mid,meeting);
+    const a=LS.get('meetings')||[];a.push(meeting);LS.set('meetings',a);
+    STATE.meetings.push(meeting);
+    APP.closeMeetModal();APP.toast('+'+pts.toLocaleString()+' pts — Meeting logged! 🎉','success');
+    APP.renderBoard();if(STATE.currentArm)APP.showArm(STATE.currentArm);
+    // Save report
+    const fromM=getMember(fromName),toM=getMember(toName);
+    const report={...meeting,fromTeam:fromM?.team||STATE.user.team,toTeam:toM?.team||''};
+    if(FB_READY)await dbSet('reports',mid,report).catch(()=>{});
+  }catch(e){APP.toast('Error: '+e.message,'error');}
+  finally{btn.disabled=false;btn.textContent='Confirm ✓';}
+};
+APP.viewPhoto=function(meeting){
+  if(!meeting.photoURL)return;
+  document.getElementById('photo-modal-img').src=meeting.photoURL;
+  document.getElementById('photo-modal-info').textContent='Met: '+meeting.toMember+' on '+meeting.date;
+  document.getElementById('photo-modal').classList.add('open');
+};
+APP.closePhotoModal=function(){document.getElementById('photo-modal').classList.remove('open');};
+
+// ============================================================
+// LEADERBOARD
+// ============================================================
+APP.renderLeaderboard=async function(){
+  const el=document.getElementById('lb-list');el.innerHTML='<div style="text-align:center;color:var(--muted);padding:2rem">Loading…</div>';
+  try{
+    let members=[];
+    if(FB_READY)members=await dbAll('members');
+    if(!members.length){const l=LS.get('members')||{};members=Object.values(l);}
+    if(!members.length){
+      // Show all members with 0 pts (before anyone registers)
+      members=ALL_MEMBERS_RAW.map(m=>({name:m.name,team:m.team,color:getColor(m.name,m.team)}));
+    }
+    let allM=[];
+    if(FB_READY)allM=await dbAll('meetings');else allM=LS.get('meetings')||[];
+    const sMap={},mMap={};
+    allM.forEach(m=>{sMap[m.fromMember]=(sMap[m.fromMember]||0)+m.points;mMap[m.fromMember]=(mMap[m.fromMember]||0)+1;});
+    const rows=members.map(d=>({name:d.name,team:d.team||'',color:d.color||getColor(d.name,d.team||''),score:sMap[d.name]||0,met:mMap[d.name]||0})).sort((a,b)=>b.score-a.score);
+    if(!rows.length){el.innerHTML='<div style="text-align:center;color:var(--muted);padding:2rem">No data yet</div>';return;}
+    el.innerHTML=rows.map((r,i)=>{
+      const isMe=r.name===STATE.user?.name,rc=i===0?'gold':i===1?'silver':i===2?'bronze':'',c=COLORS[r.color]||COLORS.blue;
+      return'<div class="lb-row'+(isMe?' me':'')+'"><div class="lb-rank '+rc+'">'+(i+1)+'</div><div style="width:8px;height:8px;border-radius:50%;background:'+c.bg+';flex-shrink:0"></div><div class="lb-info"><div class="lb-name">'+r.name+(isMe?' (You)':'')+'</div><div class="lb-team">'+r.team+'</div></div><div class="lb-score"><div class="lb-pts">'+r.score.toLocaleString()+'</div><div class="lb-met">'+r.met+' met</div></div></div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--muted);padding:2rem">Error loading</div>';}
+};
+
+// ============================================================
+// CALENDAR
+// ============================================================
+APP.renderCalendar=function(){
+  const DL=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const grid=document.getElementById('cal-grid');
+  const today=new Date().toISOString().slice(0,10);
+  const dateMap={};
+  STATE.meetings.forEach(m=>{if(!dateMap[m.date])dateMap[m.date]=[];dateMap[m.date].push(m);});
+  grid.innerHTML=DL.map(d=>'<div class="cal-day-label">'+d+'</div>').join('');
+  [[2026,5,'June 2026'],[2026,6,'July 2026']].forEach(([yr,mo,lbl])=>{
+    const hdiv=document.createElement('div');
+    hdiv.style.cssText='grid-column:1/-1;font-size:.8rem;font-weight:700;color:var(--muted);padding:.5rem 0 .2rem;text-transform:uppercase;letter-spacing:.5px';
+    hdiv.textContent=lbl;grid.appendChild(hdiv);
+    const fd=new Date(yr,mo,1).getDay(),dim=new Date(yr,mo+1,0).getDate();
+    for(let i=0;i<fd;i++){const d=document.createElement('div');d.className='cal-day empty';grid.appendChild(d);}
+    for(let day=1;day<=dim;day++){
+      const ds=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+      const hasMt=!!dateMap[ds],isTdy=ds===today,isHlf=ds===HALF_DATE;
+      const inRange=ds>=ACT_START&&ds<=ACT_END;
+      const d=document.createElement('div');d.textContent=day;
+      d.className='cal-day'+(hasMt?(isHlf?' half-day':' has-meetings'):(!inRange?' inactive':''));
+      if(isTdy)d.style.border='2px solid var(--golden)';
+      if(hasMt)d.onclick=()=>APP.showDayMeetings(ds,dateMap[ds]);
+      grid.appendChild(d);
+    }
+  });
+};
+APP.showDayMeetings=function(date,meetings){
+  document.getElementById('day-meetings-panel').innerHTML='<div class="day-meetings"><div class="day-meetings-title">Meetings on '+date+'</div>'+meetings.map(m=>'<div class="day-meeting-item"><span>'+m.toMember+'</span><span style="color:var(--golden);font-weight:600">+'+m.points.toLocaleString()+'</span></div>').join('')+'</div>';
+};
+
+// ============================================================
+// PROFILE
+// ============================================================
+APP.renderProfile=function(){
+  const u=STATE.user;if(!u)return;
+  const c=COLORS[u.color]||COLORS.blue,ini=u.name.split(' ').filter(w=>w).slice(0,2).map(w=>w[0]).join('');
+  const av=document.getElementById('profile-avatar');
+  av.style.background=c.bg+'30';av.style.color=c.bg;av.textContent=ini;
+  document.getElementById('profile-name').textContent=u.name+(u.isDemo?' (Demo)':'');
+  document.getElementById('profile-team').textContent=u.team;
+  const badges=document.getElementById('profile-badges');badges.innerHTML='';
+  const ab=(t,bg,fg='#fff')=>{const b=document.createElement('div');b.className='badge';b.style.background=bg;b.style.color=fg;b.textContent=t;badges.appendChild(b);};
+  ab(c.label,c.bg+'30',c.bg);
+  if(u.isMasterAdmin)ab('👑 Master Admin','#d97706');
+  else if(u.isAdmin)ab('⚙️ Admin','#4F46E5');
+  if(u.isDemo)ab('🎮 Demo','#374151');
+  if(GOLDEN_NAMES.includes(u.name))ab('⭐ Golden','#d97706');
+  if(SHARKS_NAMES.includes(u.name))ab('🦈 Sharks','#7c3aed');
+  const met=APP.getMetSet(),flat=APP.getBoardFlat(),total=flat.length,score=APP.calcScore();
+  const gm=(STATE.board?.golden||[]).filter(n=>met.has(n)).length;
+  const sm=(STATE.board?.sharks||[]).filter(n=>met.has(n)).length;
+  document.getElementById('stat-total').textContent=score.toLocaleString();
+  document.getElementById('stat-met').textContent=met.size+'/'+total;
+  document.getElementById('stat-golden').textContent=gm+'/5';
+  document.getElementById('stat-sharks').textContent=sm+'/6';
+};
+APP.toggleSection=function(id){const b=document.getElementById(id+'-body'),a=document.getElementById(id+'-arrow');const h=b.style.display==='none'||!b.style.display;b.style.display=h?'block':'none';if(a)a.textContent=h?'▲':'▼';};
+
+// ============================================================
+// ADMIN
+// ============================================================
+APP.showAdmin=function(){
+  const u=STATE.user;if(!u||(!u.isAdmin&&!u.isMasterAdmin)){APP.toast('Access denied');return;}
+  document.getElementById('admin-role-label').textContent=u.isMasterAdmin?'Master Admin':'Admin';
+  if(!u.isMasterAdmin)document.getElementById('shuffle-tab').classList.add('hidden');
+  APP.showScreen('s-admin');APP.loadAdminMembers();APP.setupShufflePanel();
+};
+APP.hideAdmin=function(){APP.showScreen('s-main');};
+APP.adminTab=function(el,tab){
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.admin-pane').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');document.getElementById('ap-'+tab).classList.add('active');
+  if(tab==='meetings')APP.loadAdminMeetings();
+  if(tab==='members')APP.loadAdminMembers();
+  if(tab==='report')APP.loadAdminReport();
+};
+APP.loadAdminMembers=async function(){
+  const el=document.getElementById('admin-members-list');el.innerHTML='<div style="color:var(--muted);font-size:.85rem">Loading…</div>';
+  let members=[];
+  if(FB_READY)members=await dbAll('members');
+  if(!members.length){const l=LS.get('members')||{};members=Object.values(l);}
+  STATE.allMembers=members.length?members:ALL_MEMBERS_RAW.map(m=>({name:m.name,team:m.team}));
+  APP.filterAdminMembers();
+};
+APP.filterAdminMembers=function(){
+  const q=(document.getElementById('member-search')?.value||'').toLowerCase();
+  const members=STATE.allMembers.filter(m=>!q||m.name?.toLowerCase().includes(q)||m.team?.toLowerCase().includes(q));
+  const el=document.getElementById('admin-members-list');
+  if(!members.length){el.innerHTML='<div style="color:var(--muted);padding:1rem">No results</div>';return;}
+  el.innerHTML=members.map(m=>{const c=COLORS[TEAM_COLOR[m.team]||'blue']||COLORS.blue;return'<div class="admin-member-row"><div style="width:8px;height:8px;border-radius:50%;background:'+c.bg+';flex-shrink:0"></div><div class="amr-name">'+m.name+'</div><div class="amr-team">'+m.team+'</div>'+(m.passwordHash?'<div style="color:var(--green);font-size:.7rem">✓ Reg</div>':'<div style="color:var(--dim);font-size:.7rem">Pending</div>')+'</div>';}).join('');
+};
+APP.loadAdminMeetings=async function(){
+  const el=document.getElementById('admin-meetings-list');el.innerHTML='<div style="color:var(--muted);font-size:.85rem;padding:1rem">Loading…</div>';
+  let meetings=[];
+  if(FB_READY)meetings=await dbAll('meetings');else meetings=LS.get('meetings')||[];
+  meetings.sort((a,b)=>b.timestamp-a.timestamp);STATE.allMeetings=meetings;
+  if(!meetings.length){el.innerHTML='<div style="color:var(--muted);padding:1rem">No meetings logged yet</div>';return;}
+  el.innerHTML=meetings.map(m=>'<div class="report-row"><div><strong>'+m.fromMember+'</strong> met <strong>'+m.toMember+'</strong></div><div class="rdate">'+m.date+' — +'+((m.points||0).toLocaleString())+' pts'+(m.isDemo?' (demo)':'')+'</div></div>').join('');
+};
+APP.loadAdminReport=async function(){await APP.loadAdminMeetings();document.getElementById('admin-report-list').innerHTML=document.getElementById('admin-meetings-list').innerHTML;};
+APP.addNewMember=async function(){
+  const name=document.getElementById('new-name').value.trim(),team=document.getElementById('new-team').value;
+  if(!name||!team){APP.toast('Enter name and team','error');return;}
+  const color=getColor(name,team),board=generateBoard(name,team);
+  const doc={name,team,color,board,passwordHash:'',isAdmin:false,isMasterAdmin:false,isDemo:false,createdAt:new Date().toISOString()};
+  const mid=nid(name);
+  if(FB_READY)await dbSet('members',mid,doc).catch(e=>APP.toast('DB error: '+e.message,'error'));
+  const l=LS.get('members')||{};l[name]=doc;LS.set('members',l);
+  ALL_MEMBERS_RAW.push({name,team});
+  document.getElementById('new-name').value='';document.getElementById('new-team').value='';
+  // Refresh dropdowns
+  const names=ALL_MEMBERS_RAW.map(m=>m.name).sort();
+  ['login-name','reg-name'].forEach(id=>{const sel=document.getElementById(id);if(!sel)return;sel.innerHTML='<option value="">— Select your name —</option>';names.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;sel.appendChild(o);});});
+  APP.toast(name+' added!','success');APP.loadAdminMembers();
+};
+APP.setupShufflePanel=function(){
+  const el=document.getElementById('shuffle-controls');
+  if(!STATE.user?.isMasterAdmin){el.innerHTML='<div style="color:var(--muted);font-size:.85rem">Only master admin (Srishti Shah) can shuffle boards.</div>';return;}
+  el.innerHTML='<div class="form-group"><label>Shuffle Seed (optional)</label><input type="text" id="shuffle-seed-input" placeholder="Leave blank for random"></div><button class="btn-primary btn-warn" onclick="APP.doShuffle()">🔀 Shuffle All Boards</button><p style="font-size:.75rem;color:var(--muted);margin-top:.5rem">Golden & Sharks stay fixed. All meeting scores are preserved.</p>';
+};
+APP.doShuffle=async function(){
+  if(!STATE.user?.isMasterAdmin){APP.toast('Access denied','error');return;}
+  if(!confirm('Shuffle all member boards? Scores are kept. Cannot be undone.'))return;
+  const seed=document.getElementById('shuffle-seed-input')?.value||String(Date.now());
+  APP.toast('Shuffling…');
+  try{
+    let members=[];
+    if(FB_READY)members=await dbAll('members');else{const l=LS.get('members')||{};members=Object.values(l);}
+    for(const m of members){
+      if(!m.name||!m.team)continue;
+      const nb=generateBoard(m.name,m.team,seed);
+      if(FB_READY)await dbSet('members',nid(m.name),{board:nb,shuffledAt:new Date().toISOString(),shuffleSeed:seed});
+      const l=LS.get('members')||{};if(l[m.name]){l[m.name].board=nb;LS.set('members',l);}
+    }
+    APP.toast('Boards shuffled! Scores preserved.','success');
+  }catch(e){APP.toast('Shuffle error: '+e.message,'error');}
+};
+APP.downloadReport=async function(){
+  let meetings=[];
+  if(FB_READY)meetings=await dbAll('meetings');else meetings=LS.get('meetings')||[];
+  meetings.sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));
+  const hdr='Date,From Member,From Team,To Member,To Team,Category,Points,Has Photo,Saved At';
+  const rows=meetings.map(m=>[m.date||'',m.fromMember||'',getMember(m.fromMember)?.team||'',m.toMember||'',getMember(m.toMember)?.team||'',m.toColor||'',m.points||0,m.photoURL?'Yes':'No',m.savedAt||m.date||''].map(v=>'"'+v+'"').join(','));
+  const csv=[hdr,...rows].join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='PPL_LT12_Report_'+new Date().toISOString().slice(0,10)+'.csv';a.click();URL.revokeObjectURL(url);
+  APP.toast('Report downloaded!','success');
+};
+
+// ============================================================
+// NAVIGATION & UTILS
+// ============================================================
+APP.showScreen=function(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id)?.classList.add('active');};
+APP.showTab=function(tab){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-'+tab)?.classList.add('active');
+  document.getElementById('nav-'+tab)?.classList.add('active');
+  STATE.currentTab=tab;
+  if(tab==='lb')APP.renderLeaderboard();
+  if(tab==='cal'){const g=document.getElementById('cal-grid');g.innerHTML='';APP.renderCalendar();document.getElementById('day-meetings-panel').innerHTML='';}
+  if(tab==='profile')APP.renderProfile();
+};
+let toastTimer;
+APP.toast=function(msg,type){
+  const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(type?' '+type:'');
+  clearTimeout(toastTimer);setTimeout(()=>t.classList.add('show'),10);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3200);
+};
+
+// ============================================================
+// PWA & INIT
+// ============================================================
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+let lastTap=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lastTap<350)e.preventDefault();lastTap=n;},{passive:false});
+window.addEventListener('DOMContentLoaded',async()=>{
+  await APP.init();
+  setTimeout(()=>{if(document.getElementById('s-splash').classList.contains('active'))APP.showScreen('s-auth');},1800);
+});
+</script>
+</body>
+</html>
