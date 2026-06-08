@@ -46,6 +46,29 @@ html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-ser
 .pdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
 .board-wrap{display:flex;justify-content:center;flex-shrink:0}
+.board-rel{position:relative;width:100%;max-width:380px;aspect-ratio:1/1}
+
+/* ── GOTI PINS ── */
+#goti-layer{position:absolute;inset:3px;display:grid;
+  grid-template-columns:repeat(15,1fr);grid-template-rows:repeat(15,1fr);
+  gap:1px;pointer-events:none;z-index:20}
+.goti-pin{display:flex;flex-direction:column;align-items:center;
+  justify-content:flex-end;padding-bottom:2px;
+  filter:drop-shadow(0 3px 6px rgba(0,0,0,.5));
+  animation:gotiPop .45s cubic-bezier(.36,2.2,.5,.9)}
+@keyframes gotiPop{
+  0%{transform:translateY(-10px) scale(1.5);opacity:0}
+  100%{transform:translateY(0) scale(1);opacity:1}}
+.goti-circle{width:68%;aspect-ratio:1;border-radius:50%;
+  background:var(--gc);border:2.5px solid rgba(255,255,255,.95);
+  box-shadow:inset 0 2px 4px rgba(255,255,255,.45),0 1px 2px rgba(0,0,0,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:6px;font-weight:900;color:rgba(255,255,255,.8);
+  font-family:'Cinzel',serif;letter-spacing:-.3px}
+.goti-tip{width:0;height:0;border-left:4px solid transparent;
+  border-right:4px solid transparent;border-top:7px solid var(--gc);margin-top:-1px}
+.goti-pin.home .goti-circle{border-color:#ffd700;border-width:3px;
+  box-shadow:0 0 8px 2px rgba(255,215,0,.5),inset 0 2px 4px rgba(255,255,255,.5)}
 .board{width:100%;max-width:380px;aspect-ratio:1/1;
   display:grid;grid-template-columns:repeat(15,1fr);grid-template-rows:repeat(15,1fr);
   background:#bbb;border:3px solid #999;border-radius:10px;
@@ -231,7 +254,12 @@ html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-ser
     <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
     <div class="prog-cats" id="prog-cats"></div>
   </div>
-  <div class="board-wrap"><div class="board" id="board"></div></div>
+  <div class="board-wrap">
+    <div class="board-rel">
+      <div class="board" id="board"></div>
+      <div id="goti-layer"></div>
+    </div>
+  </div>
   <div class="footer">
     🎲 <b>PPL Ludo — Pioneer LT 12</b> &nbsp;·&nbsp; June 12 – July 12, 2026<br>
     Created by <b>Abhishek Shah, Srishti Shah, Dr Vivek Mehta</b>
@@ -358,13 +386,15 @@ const ARMS = {
     ]},
 };
 
-const LEADERBOARD = [
-  {name:"Srishti Shah",   team:"Director",      met:15, pts:15000, color:"R"},
-  {name:"Dr Utsav Shah",  team:"Bodyline",      met:12, pts:12000, color:"G"},
-  {name:"Ruchir Sheth",   team:"Jainam Global", met:11, pts:11000, color:"B"},
-  {name:"Monila Surana",  team:"Legacy Link",   met:10, pts:10000, color:"Y"},
-  {name:"Abhishek Shah",  team:"Director",      met:0,  pts:0,     color:"G"},
-];
+// ── GOTI PATHS: 10 steps per arm (5 outer approach + 5 home stretch) ──────────
+// Step 0 = home base (not on board); Step 1-10 = path cells; Step ≥11 = HOME (7,7)
+const ARM_PATH = {
+  G:[[5,6],[4,6],[3,6],[2,6],[1,6],[5,7],[4,7],[3,7],[2,7],[1,7]],
+  R:[[6,13],[6,12],[6,11],[6,10],[6,9],[7,13],[7,12],[7,11],[7,10],[7,9]],
+  B:[[13,8],[12,8],[11,8],[10,8],[9,8],[13,7],[12,7],[11,7],[10,7],[9,7]],
+  Y:[[8,0],[8,1],[8,2],[8,3],[8,4],[7,1],[7,2],[7,3],[7,4],[7,5]],
+};
+const GOTI_STEPS = {G:0,R:0,B:0,Y:0};
 
 const MET = new Set();
 // Track meetings per date: {"2026-06-14": 2}
@@ -497,6 +527,26 @@ function renderBoard(){
   }
 }
 
+function renderGotis(){
+  const layer=document.getElementById('goti-layer');
+  layer.innerHTML='';
+  Object.entries(ARMS).forEach(([k,arm])=>{
+    const steps=GOTI_STEPS[k];
+    if(steps===0)return;
+    let r,c,atHome=false;
+    if(steps>=11){r=7;c=7;atHome=true;}
+    else{[r,c]=ARM_PATH[k][steps-1];}
+    const pin=document.createElement('div');
+    pin.className='goti-pin'+(atHome?' home':'');
+    pin.style.setProperty('--gc',arm.hex);
+    pin.style.gridRow=r+1;
+    pin.style.gridColumn=c+1;
+    const initials=arm.label.charAt(0);
+    pin.innerHTML='<div class="goti-circle">'+initials+'</div><div class="goti-tip"></div>';
+    layer.appendChild(pin);
+  });
+}
+
 function updateStats(){
   let total=0,met=0;
   const byCnt={G:0,R:0,B:0,Y:0};
@@ -515,15 +565,29 @@ function updateStats(){
 // ── SCORES ────────────────────────────────────────────────
 function renderScores(){
   const el=document.getElementById('scores-list');
-  const data=[...LEADERBOARD].sort((a,b)=>b.pts-a.pts);
+  // Build leaderboard from all members + current user's MET data
+  const all=[];
+  Object.entries(ARMS).forEach(([k,a])=>{
+    a.members.forEach(m=>{
+      const metCount=MET.has(m.name)?1:0; // placeholder: in real app, each user has their own score
+      all.push({name:m.name,team:m.team,met:metCount,pts:metCount*1000,color:k});
+    });
+  });
+  // Add current user
+  let userMet=MET.size,userPts=userMet*1000;
+  all.unshift({name:USER.name,team:USER.team,met:userMet,pts:userPts,color:'G',isUser:true});
+  const data=all.sort((a,b)=>b.pts-a.pts).slice(0,10);
   const medals=['🥇','🥈','🥉'];
+  const total=Object.values(ARMS).reduce((s,a)=>s+a.members.length,0);
   el.innerHTML=data.map((p,i)=>{
     const arm=ARMS[p.color];
-    return '<div class="score-card"><div class="rank">'+(i<3?medals[i]:(i+1))+'</div>'+
+    return '<div class="score-card'+(p.isUser?' ':"")+'">'+
+      '<div class="rank">'+(i<3?medals[i]:(i+1))+'</div>'+
       '<div class="rank-dot" style="background:'+arm.hex+'"></div>'+
-      '<div style="flex:1;min-width:0"><div class="sc-name">'+p.name+'</div><div class="sc-team">'+p.team+'</div></div>'+
+      '<div style="flex:1;min-width:0"><div class="sc-name">'+p.name+(p.isUser?' 👤':'')+'</div>'+
+      '<div class="sc-team">'+p.team+'</div></div>'+
       '<div style="text-align:right"><div class="sc-pts">'+p.pts.toLocaleString()+' pts</div>'+
-      '<div class="sc-met">'+p.met+'/15 met</div></div></div>';
+      '<div class="sc-met">'+p.met+'/'+total+' met</div></div></div>';
   }).join('');
 }
 
@@ -556,64 +620,4 @@ function renderCalendar(){
         '</div>';
     }
     return '<div class="cal-month-wrap">'+
-      '<div class="cal-month-title">'+mname+'</div>'+
-      '<div class="cal-week-hdr">'+days.map(d=>'<div class="cal-wday">'+d+'</div>').join('')+'</div>'+
-      '<div class="cal-days">'+cells+'</div></div>';
-  }
-
-  el.innerHTML=makeMonth(2026,5,'June 2026')+makeMonth(2026,6,'July 2026');
-}
-
-// ── PROFILE ───────────────────────────────────────────────
-function renderProfile(){
-  let met=0,pts=0;
-  Object.values(ARMS).forEach(a=>a.members.forEach(m=>{if(MET.has(m.name)){met++;pts+=1000;}}));
-  document.getElementById('pf-met').textContent=met+' / 15';
-  document.getElementById('pf-pts').textContent=pts.toLocaleString()+' pts';
-}
-
-// ── MODAL ─────────────────────────────────────────────────
-function openModal(mem,armKey){
-  SEL={mem,armKey};PHOTO=null;
-  const arm=ARMS[armKey];
-  document.getElementById('sh').style.borderColor=arm.hex;
-  document.getElementById('bok').style.background=arm.hex;
-  document.getElementById('mt').textContent='Meet '+mem.name+(mem.special?' ⭐':'');
-  document.getElementById('ms').textContent=mem.name+' · '+mem.team+' · '+arm.label+' Team';
-  document.getElementById('pa').innerHTML='<div class="pi">📸</div><div class="pt">Tap to upload selfie as proof</div>';
-  document.getElementById('pa').classList.remove('hp');
-  document.getElementById('bok').disabled=true;
-  document.getElementById('ov').classList.add('open');
-}
-function closeModal(){document.getElementById('ov').classList.remove('open');SEL=null;PHOTO=null;}
-document.getElementById('ov').addEventListener('click',function(e){if(e.target===this)closeModal();});
-function handlePhoto(e){
-  const f=e.target.files[0];if(!f)return;PHOTO=f;
-  const url=URL.createObjectURL(f);
-  document.getElementById('pa').innerHTML='<img src="'+url+'" alt="">';
-  document.getElementById('pa').classList.add('hp');
-  document.getElementById('bok').disabled=false;
-}
-function confirmMeet(){
-  if(!SEL||!PHOTO)return;
-  const arm=ARMS[SEL.armKey];
-  MET.add(SEL.mem.name);
-  // Log to date
-  MEET_LOG[TODAY]=(MEET_LOG[TODAY]||0)+1;
-  closeModal();
-  renderBoard();
-  updateStats();
-  // Celebration
-  document.getElementById('cel').style.background='rgba(0,0,0,.85)';
-  document.getElementById('cel-icon').textContent=arm.icon+'🏠';
-  document.getElementById('cel-msg').textContent=arm.label.toUpperCase()+' GOES HOME!';
-  document.getElementById('cel-sub').textContent=SEL.mem.name+' · Meeting logged · +1,000 pts';
-  document.getElementById('cel').classList.add('show');
-}
-function closeCelebrate(){document.getElementById('cel').classList.remove('show');}
-
-renderBoard();
-updateStats();
-</script>
-</body>
-</html>
+      '<div class
