@@ -682,4 +682,12 @@ function confirmMeet(){
   document.getElementById('cel').style.background='rgba(0,0,0,.85)';
   document.getElementById('cel-icon').textContent=arm.icon+(atHome?'&#127968;':'&#127922;');
   document.getElementById('cel-msg').textContent=arm.label.toUpperCase()+(atHome?' REACHES HOME!':' GOTI MOVES!');
-  document.getElementById('cel-sub').textContent=SEL.mem.name+' +
+  document.getElementById('cel-sub').textContent=SEL.mem.name+' +1,000 pts Step '+GOTI_STEPS[SEL.armKey]+'/5';
+  document.getElementById('cel').classList.add('show');
+}
+function closeCelebrate(){document.getElementById('cel').classList.remove('show');}
+
+renderBoard();
+renderGotis();
+</script>
+</body></html>
