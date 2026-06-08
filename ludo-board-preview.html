@@ -620,4 +620,67 @@ function renderCalendar(){
         '</div>';
     }
     return '<div class="cal-month-wrap">'+
-      '<div class
+      '<div class="cal-month-title">'+mname+'</div>'+
+      '<div class="cal-week-hdr">'+days.map(d=>'<div class="cal-wday">'+d+'</div>').join('')+'</div>'+
+      '<div class="cal-days">'+cells+'</div></div>';
+  }
+
+  el.innerHTML=makeMonth(2026,5,'June 2026')+makeMonth(2026,6,'July 2026');
+}
+
+// ── PROFILE ───────────────────────────────────────────────
+function renderProfile(){
+  let met=0,pts=0;
+  Object.values(ARMS).forEach(a=>a.members.forEach(m=>{if(MET.has(m.name)){met++;pts+=1000;}}));
+  const tot=Object.values(ARMS).reduce((s,a)=>s+a.members.length,0);
+  document.getElementById('pf-met').textContent=met+' / '+tot;
+  document.getElementById('pf-pts').textContent=pts.toLocaleString()+' pts';
+}
+
+// ── MODAL ─────────────────────────────────────────────────
+function openModal(mem,armKey){
+  SEL={mem,armKey};PHOTO=null;
+  const arm=ARMS[armKey];
+  document.getElementById('sh').style.borderColor=arm.hex;
+  document.getElementById('bok').style.background=arm.hex;
+  document.getElementById('mt').textContent='Meet '+mem.name+(mem.special?' ':'')+'★';
+  document.getElementById('ms').textContent=mem.name+' - '+mem.team+' - '+arm.label+' Team';
+  document.getElementById('pa').innerHTML='<div class="pi">&#128248;</div><div class="pt">Tap to upload selfie as proof</div>';
+  document.getElementById('pa').classList.remove('hp');
+  document.getElementById('bok').disabled=true;
+  document.getElementById('ov').classList.add('open');
+}
+function closeModal(){document.getElementById('ov').classList.remove('open');SEL=null;PHOTO=null;}
+document.getElementById('ov').addEventListener('click',function(e){if(e.target===this)closeModal();});
+function handlePhoto(e){
+  const f=e.target.files[0];if(!f)return;PHOTO=f;
+  const url=URL.createObjectURL(f);
+  document.getElementById('pa').innerHTML='<img src="'+url+'" alt="">';
+  document.getElementById('pa').classList.add('hp');
+  document.getElementById('bok').disabled=false;
+}
+function confirmMeet(){
+  if(!SEL||!PHOTO)return;
+  const arm=ARMS[SEL.armKey];
+  MET.add(SEL.mem.name);
+  MEET_LOG[TODAY]=(MEET_LOG[TODAY]||0)+1;
+  if(GOTI_STEPS[SEL.armKey]<11) GOTI_STEPS[SEL.armKey]++;
+  closeModal();
+  renderBoard();
+  renderGotis();
+  updateStats();
+  const atHome=GOTI_STEPS[SEL.armKey]>=11;
+  document.getElementById('cel').style.background='rgba(0,0,0,.85)';
+  document.getElementById('cel-icon').textContent=arm.icon+(atHome?'&#127968;':'&#127922;');
+  document.getElementById('cel-msg').textContent=arm.label.toUpperCase()+(atHome?' REACHES HOME!':' GOTI MOVES!');
+  document.getElementById('cel-sub').textContent=SEL.mem.name+' +1,000 pts Step '+GOTI_STEPS[SEL.armKey]+'/10';
+  document.getElementById('cel').classList.add('show');
+}
+function closeCelebrate(){document.getElementById('cel').classList.remove('show');}
+
+renderBoard();
+renderGotis();
+updateStats();
+</script>
+</body>
+</html>
