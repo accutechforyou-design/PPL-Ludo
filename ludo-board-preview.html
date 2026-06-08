@@ -240,7 +240,7 @@ html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-ser
   </div>
   <div class="met-badge">
     <div class="met-num" id="met-num">0/20</div>
-    <div class="met-lbl">Met</div>
+    <div class="met-lbl" id="met-lbl">PTS</div>
   </div>
 </div>
 
@@ -388,7 +388,7 @@ const ARMS = {
 
 // -- GOTI PATHS: 4 steps per arm (1 per met member), step 5 = HOME (7,7) --------
 const ARM_PATH = {
-  G:[[5,6],[4,6],[3,6],[2,6]],
+  G:[[1,6],[2,6],[3,6],[4,6]],
   R:[[6,13],[6,12],[6,11],[6,10]],
   B:[[13,8],[12,8],[11,8],[10,8]],
   Y:[[8,0],[8,1],[8,2],[8,3]],
@@ -478,8 +478,8 @@ function renderBoard(){
   bd.innerHTML='';
   const MM={};
   getOrderedMembers('G').forEach((m,i)=>{MM[`${i+1},6`]={...m,arm:'G'};});
-  getOrderedMembers('R').forEach((m,i)=>{MM[`6,${9+i}`]={...m,arm:'R'};});
-  getOrderedMembers('B').forEach((m,i)=>{MM[`${9+i},8`]={...m,arm:'B'};});
+  getOrderedMembers('R').forEach((m,i)=>{MM[`6,${13-i}`]={...m,arm:'R'};});
+  getOrderedMembers('B').forEach((m,i)=>{MM[`${13-i},8`]={...m,arm:'B'};});
   getOrderedMembers('Y').forEach((m,i)=>{MM[`8,${i}`]={...m,arm:'Y'};});
 
   for(let r=0;r<15;r++){
