@@ -386,13 +386,12 @@ const ARMS = {
     ]},
 };
 
-// -- GOTI PATHS: 10 steps per arm (5 outer approach + 5 home stretch) ----------
-// Step 0 = home base (not on board); Step 1-10 = path cells; Step >=11 = HOME (7,7)
+// -- GOTI PATHS: 4 steps per arm (1 per met member), step 5 = HOME (7,7) --------
 const ARM_PATH = {
-  G:[[5,6],[4,6],[3,6],[2,6],[1,6],[5,7],[4,7],[3,7],[2,7],[1,7]],
-  R:[[6,13],[6,12],[6,11],[6,10],[6,9],[7,13],[7,12],[7,11],[7,10],[7,9]],
-  B:[[13,8],[12,8],[11,8],[10,8],[9,8],[13,7],[12,7],[11,7],[10,7],[9,7]],
-  Y:[[8,0],[8,1],[8,2],[8,3],[8,4],[7,1],[7,2],[7,3],[7,4],[7,5]],
+  G:[[5,6],[4,6],[3,6],[2,6]],
+  R:[[6,13],[6,12],[6,11],[6,10]],
+  B:[[13,8],[12,8],[11,8],[10,8]],
+  Y:[[8,0],[8,1],[8,2],[8,3]],
 };
 const GOTI_STEPS = {G:0,R:0,B:0,Y:0};
 
@@ -465,14 +464,23 @@ function abbr(name){
   return p[0].substring(0,5);
 }
 
+// Met members in meeting order (Set preserves insertion order), then unmet in original order
+function getOrderedMembers(armKey){
+  const arm=ARMS[armKey];
+  const metInOrder=[];
+  MET.forEach(name=>{const f=arm.members.find(m=>m.name===name);if(f)metInOrder.push(f);});
+  const unmet=arm.members.filter(m=>!MET.has(m.name));
+  return [...metInOrder,...unmet];
+}
+
 function renderBoard(){
   const bd=document.getElementById('board');
   bd.innerHTML='';
   const MM={};
-  ARMS.G.members.forEach((m,i)=>{MM[`${i+1},6`]={...m,arm:'G'};});
-  ARMS.R.members.forEach((m,i)=>{MM[`6,${9+i}`]={...m,arm:'R'};});
-  ARMS.B.members.forEach((m,i)=>{MM[`${9+i},8`]={...m,arm:'B'};});
-  ARMS.Y.members.forEach((m,i)=>{MM[`8,${i}`]={...m,arm:'Y'};});
+  getOrderedMembers('G').forEach((m,i)=>{MM[`${i+1},6`]={...m,arm:'G'};});
+  getOrderedMembers('R').forEach((m,i)=>{MM[`6,${9+i}`]={...m,arm:'R'};});
+  getOrderedMembers('B').forEach((m,i)=>{MM[`${9+i},8`]={...m,arm:'B'};});
+  getOrderedMembers('Y').forEach((m,i)=>{MM[`8,${i}`]={...m,arm:'Y'};});
 
   for(let r=0;r<15;r++){
     for(let c=0;c<15;c++){
@@ -534,7 +542,7 @@ function renderGotis(){
     const steps=GOTI_STEPS[k];
     if(steps===0)return;
     let r,c,atHome=false;
-    if(steps>=11){r=7;c=7;atHome=true;}
+    if(steps>=5){r=7;c=7;atHome=true;}
     else{[r,c]=ARM_PATH[k][steps-1];}
     const pin=document.createElement('div');
     pin.className='goti-pin'+(atHome?' home':'');
@@ -664,23 +672,14 @@ function confirmMeet(){
   const arm=ARMS[SEL.armKey];
   MET.add(SEL.mem.name);
   MEET_LOG[TODAY]=(MEET_LOG[TODAY]||0)+1;
-  if(GOTI_STEPS[SEL.armKey]<11) GOTI_STEPS[SEL.armKey]++;
+  // Goti steps = count of met members in this arm (0-4 on path, 5 = HOME)
+  GOTI_STEPS[SEL.armKey]=ARMS[SEL.armKey].members.filter(m=>MET.has(m.name)).length;
   closeModal();
   renderBoard();
   renderGotis();
   updateStats();
-  const atHome=GOTI_STEPS[SEL.armKey]>=11;
+  const atHome=GOTI_STEPS[SEL.armKey]>=5;
   document.getElementById('cel').style.background='rgba(0,0,0,.85)';
   document.getElementById('cel-icon').textContent=arm.icon+(atHome?'&#127968;':'&#127922;');
   document.getElementById('cel-msg').textContent=arm.label.toUpperCase()+(atHome?' REACHES HOME!':' GOTI MOVES!');
-  document.getElementById('cel-sub').textContent=SEL.mem.name+' +1,000 pts Step '+GOTI_STEPS[SEL.armKey]+'/10';
-  document.getElementById('cel').classList.add('show');
-}
-function closeCelebrate(){document.getElementById('cel').classList.remove('show');}
-
-renderBoard();
-renderGotis();
-updateStats();
-</script>
-</body>
-</html>
+  document.getElementById('cel-sub').textContent=SEL.mem.name+' +
