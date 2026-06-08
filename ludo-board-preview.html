@@ -349,7 +349,7 @@ html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-ser
 const USER = {name:"Abhishek Shah", team:"Director"};
 const TODAY = new Date().toISOString().slice(0,10);
 
-// ── ARMS: 4+4+4+3=15 ─────────────────────────────────────
+// -- ARMS: 4+4+4+3=15 -------------------------------------
 // SPECIAL members (guaranteed 1 per board, 1000 pts): Dr Swagat Shah, Timir Shah, Dhruv Shah, Ketan Shah
 const ARMS = {
   G:{label:"Green",  hex:"#27ae60", icon:"🟢",
@@ -386,8 +386,8 @@ const ARMS = {
     ]},
 };
 
-// ── GOTI PATHS: 10 steps per arm (5 outer approach + 5 home stretch) ──────────
-// Step 0 = home base (not on board); Step 1-10 = path cells; Step ≥11 = HOME (7,7)
+// -- GOTI PATHS: 10 steps per arm (5 outer approach + 5 home stretch) ----------
+// Step 0 = home base (not on board); Step 1-10 = path cells; Step >=11 = HOME (7,7)
 const ARM_PATH = {
   G:[[5,6],[4,6],[3,6],[2,6],[1,6],[5,7],[4,7],[3,7],[2,7],[1,7]],
   R:[[6,13],[6,12],[6,11],[6,10],[6,9],[7,13],[7,12],[7,11],[7,10],[7,9]],
@@ -407,7 +407,7 @@ MEET_LOG["2026-06-25"] = 1;
 
 let SEL=null, PHOTO=null;
 
-// ── TABS ──────────────────────────────────────────────────
+// -- TABS --------------------------------------------------
 function showTab(name, el){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nit').forEach(n=>n.classList.remove('on'));
@@ -418,7 +418,7 @@ function showTab(name, el){
   if(name==='profile') renderProfile();
 }
 
-// ── BOARD GRID ────────────────────────────────────────────
+// -- BOARD GRID --------------------------------------------
 function getBase(r,c){
   if(r<=5&&c<=5){
     if(r>=1&&r<=4&&c>=1&&c<=4){
@@ -508,7 +508,7 @@ function renderBoard(){
           case'SR':div.classList.add('sR');break; case'SRe':div.classList.add('sRe');break;
           case'SY':div.classList.add('sY');break; case'SYe':div.classList.add('sYe');break;
           case'SB':div.classList.add('sB');break; case'SBe':div.classList.add('sBe');break;
-          case'STAR':div.classList.add('path','star-sq');div.innerHTML='<span style="font-size:9px">⭐</span>';break;
+          case'STAR':div.classList.add('path','star-sq');div.innerHTML='<span style="font-size:9px">-</span>';break;
           case'CTR':
             div.classList.add('ctr');
             const cr=d.cr,cc=d.cc;
@@ -562,7 +562,7 @@ function updateStats(){
   }).join('');
 }
 
-// ── SCORES ────────────────────────────────────────────────
+// -- SCORES ------------------------------------------------
 function renderScores(){
   const el=document.getElementById('scores-list');
   // Build leaderboard from all members + current user's MET data
@@ -591,7 +591,7 @@ function renderScores(){
   }).join('');
 }
 
-// ── CALENDAR ──────────────────────────────────────────────
+// -- CALENDAR ----------------------------------------------
 function renderCalendar(){
   const el=document.getElementById('cal-grid');
   const start=new Date('2026-06-12');
@@ -628,7 +628,7 @@ function renderCalendar(){
   el.innerHTML=makeMonth(2026,5,'June 2026')+makeMonth(2026,6,'July 2026');
 }
 
-// ── PROFILE ───────────────────────────────────────────────
+// -- PROFILE -----------------------------------------------
 function renderProfile(){
   let met=0,pts=0;
   Object.values(ARMS).forEach(a=>a.members.forEach(m=>{if(MET.has(m.name)){met++;pts+=1000;}}));
@@ -637,13 +637,13 @@ function renderProfile(){
   document.getElementById('pf-pts').textContent=pts.toLocaleString()+' pts';
 }
 
-// ── MODAL ─────────────────────────────────────────────────
+// -- MODAL -------------------------------------------------
 function openModal(mem,armKey){
   SEL={mem,armKey};PHOTO=null;
   const arm=ARMS[armKey];
   document.getElementById('sh').style.borderColor=arm.hex;
   document.getElementById('bok').style.background=arm.hex;
-  document.getElementById('mt').textContent='Meet '+mem.name+(mem.special?' ':'')+'★';
+  document.getElementById('mt').textContent='Meet '+mem.name+(mem.special?' ':'')+'-';
   document.getElementById('ms').textContent=mem.name+' - '+mem.team+' - '+arm.label+' Team';
   document.getElementById('pa').innerHTML='<div class="pi">&#128248;</div><div class="pt">Tap to upload selfie as proof</div>';
   document.getElementById('pa').classList.remove('hp');
