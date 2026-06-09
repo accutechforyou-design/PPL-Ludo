@@ -239,7 +239,7 @@ html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-ser
     <div class="tteam" id="tteam">Director</div>
   </div>
   <div class="met-badge">
-    <div class="met-num" id="met-num">0/20</div>
+    <div class="met-num" id="met-num">0</div>
     <div class="met-lbl" id="met-lbl">PTS</div>
   </div>
 </div>
@@ -538,19 +538,41 @@ function renderBoard(){
 function renderGotis(){
   const layer=document.getElementById('goti-layer');
   layer.innerHTML='';
+  const homeGotis=[];
+
   Object.entries(ARMS).forEach(([k,arm])=>{
     const steps=GOTI_STEPS[k];
     if(steps===0)return;
-    let r,c,atHome=false;
-    if(steps>=5){r=7;c=7;atHome=true;}
-    else{[r,c]=ARM_PATH[k][steps-1];}
+    if(steps>=5){homeGotis.push({k,arm});return;}
+    const [r,c]=ARM_PATH[k][steps-1];
     const pin=document.createElement('div');
-    pin.className='goti-pin'+(atHome?' home':'');
+    pin.className='goti-pin';
     pin.style.setProperty('--gc',arm.hex);
     pin.style.gridRow=r+1;
     pin.style.gridColumn=c+1;
-    const initials=arm.label.charAt(0);
-    pin.innerHTML='<div class="goti-circle">'+initials+'</div><div class="goti-tip"></div>';
+    pin.innerHTML='<div class="goti-circle">'+arm.label.charAt(0)+'</div><div class="goti-tip"></div>';
+    layer.appendChild(pin);
+  });
+
+  // Multiple home gotis — offset so all are visible at center
+  const homeOffsets=[
+    [[0,0]],
+    [[-6,-3],[6,-3]],
+    [[-6,-3],[6,-3],[0,5]],
+    [[-6,-4],[6,-4],[-6,4],[6,4]],
+  ];
+  const n=homeGotis.length;
+  const offsets=homeOffsets[Math.min(n,4)-1]||[[0,0]];
+  homeGotis.forEach(({k,arm},idx)=>{
+    const pin=document.createElement('div');
+    pin.className='goti-pin home';
+    pin.style.setProperty('--gc',arm.hex);
+    pin.style.gridRow=8;
+    pin.style.gridColumn=8;
+    pin.style.zIndex=idx+1;
+    const [ox,oy]=offsets[idx]||[0,0];
+    if(ox||oy)pin.style.transform='translate('+ox+'px,'+oy+'px)';
+    pin.innerHTML='<div class="goti-circle">'+arm.label.charAt(0)+'</div><div class="goti-tip"></div>';
     layer.appendChild(pin);
   });
 }
@@ -562,9 +584,10 @@ function updateStats(){
     a.members.forEach(m=>{total++;if(MET.has(m.name)){met++;byCnt[k]++;}});
   });
   const pct=total?Math.round(met/total*100):0;
+  const pts=met*1000;
   document.getElementById('prog-ct').textContent=met+' / '+total+' Met';
   document.getElementById('prog-fill').style.width=pct+'%';
-  document.getElementById('met-num').textContent=met+'/'+total;
+  document.getElementById('met-num').textContent=pts.toLocaleString();
   document.getElementById('prog-cats').innerHTML=Object.entries(ARMS).map(([k,a])=>{
     return '<div class="pcat"><div class="pdot" style="background:'+a.hex+'"></div>'+byCnt[k]+'/'+a.members.length+' '+a.label+'</div>';
   }).join('');
@@ -670,7 +693,8 @@ function handlePhoto(e){
 function confirmMeet(){
   if(!SEL||!PHOTO)return;
   const arm=ARMS[SEL.armKey];
-  MET.add(SEL.mem.name);
+  const memName=SEL.mem.name;
+  MET.add(memName);
   MEET_LOG[TODAY]=(MEET_LOG[TODAY]||0)+1;
   // Goti steps = count of met members in this arm (0-4 on path, 5 = HOME)
   GOTI_STEPS[SEL.armKey]=ARMS[SEL.armKey].members.filter(m=>MET.has(m.name)).length;
@@ -679,11 +703,20 @@ function confirmMeet(){
   renderGotis();
   updateStats();
   const atHome=GOTI_STEPS[SEL.armKey]>=5;
-  document.getElementById('cel').style.background='rgba(0,0,0,.85)';
-  document.getElementById('cel-icon').textContent=arm.icon+(atHome?'&#127968;':'&#127922;');
-  document.getElementById('cel-msg').textContent=arm.label.toUpperCase()+(atHome?' REACHES HOME!':' GOTI MOVES!');
-  document.getElementById('cel-sub').textContent=SEL.mem.name+' +1,000 pts Step '+GOTI_STEPS[SEL.armKey]+'/5';
-  document.getElementById('cel').classList.add('show');
+  const totalPts=MET.size*1000;
+  const cel=document.getElementById('cel');
+  if(atHome){
+    cel.style.background='linear-gradient(160deg,rgba(0,0,0,.9) 40%,'+arm.hex+'66 100%)';
+    document.getElementById('cel-icon').innerHTML=arm.icon+' 🏠';
+    document.getElementById('cel-msg').innerHTML='🎉 Congratulations!<br>Your '+arm.label+' Goti is HOME!';
+    document.getElementById('cel-sub').innerHTML=memName+' met — all 5 '+arm.label+' members done!<br>Total: <b>'+totalPts.toLocaleString()+' pts</b>';
+  } else {
+    cel.style.background='rgba(0,0,0,.85)';
+    document.getElementById('cel-icon').innerHTML='🎲';
+    document.getElementById('cel-msg').innerHTML='+1,000 Points Received!';
+    document.getElementById('cel-sub').innerHTML=memName+' logged! '+arm.label+' Step '+GOTI_STEPS[SEL.armKey]+'/5<br>Total: <b>'+totalPts.toLocaleString()+' pts</b>';
+  }
+  cel.classList.add('show');
 }
 function closeCelebrate(){document.getElementById('cel').classList.remove('show');}
 
