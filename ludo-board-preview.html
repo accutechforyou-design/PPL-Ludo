@@ -225,15 +225,34 @@ html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-ser
   background:#333;border-radius:10px;padding:.55rem 1rem;font-size:.8rem;
   color:#fff;z-index:999;opacity:0;transition:opacity .2s,transform .2s;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ADMIN */
+.adm-section{margin-bottom:1rem}
+.adm-section-title{font-family:'Cinzel',serif;font-size:.78rem;font-weight:700;
+  color:#444;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem}
+.adm-arm{margin-bottom:.9rem}
+.adm-arm-hdr{font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:700;
+  padding:.25rem .6rem;border-radius:6px;color:#fff;margin-bottom:.35rem;display:flex;align-items:center;gap:.4rem}
+.adm-mem-row{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;margin-bottom:.3rem}
+.adm-inp{padding:.42rem .5rem;border:1.5px solid #e0e0e0;border-radius:7px;
+  font-size:.75rem;font-family:'Rajdhani',sans-serif;font-weight:600;width:100%;background:#fafafa}
+.adm-inp:focus{border-color:#27ae60;outline:none;background:#fff}
+.adm-num{padding:.6rem;border:2px solid #27ae60;border-radius:9px;
+  font-size:1.1rem;font-family:'Cinzel',serif;font-weight:700;color:#27ae60;
+  width:100%;text-align:center;background:#f0fff4}
+.adm-warn{font-size:.65rem;color:#e74c3c;margin-top:.25rem;font-family:'Rajdhani',sans-serif;font-weight:600}
+.adm-reset{width:100%;padding:.7rem;background:transparent;border:2px solid #e74c3c;
+  border-radius:10px;color:#e74c3c;font-family:'Rajdhani',sans-serif;font-weight:700;
+  font-size:.88rem;cursor:pointer;margin-top:.4rem}
 </style>
 </head>
 <body>
 <div id="app">
 
 <div class="topbar">
-  <img class="tlogo" src="icons/ppl-logo.png"
+  <img class="tlogo" src="icons/ppl-logo.png" onclick="logoTap()"
     onerror="this.style.display='none';document.getElementById('tfb').style.display='flex'">
-  <div class="tlogo-fb" id="tfb">PPL</div>
+  <div class="tlogo-fb" id="tfb" onclick="logoTap()">PPL</div>
   <div style="flex:1;min-width:0">
     <div class="tname" id="tname">Abhishek Shah</div>
     <div class="tteam" id="tteam">Director</div>
@@ -343,11 +362,44 @@ html,body{height:100%;background:#e8e8e8;color:#222;font-family:'Exo 2',sans-ser
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- ADMIN PANEL -->
+<div class="ov" id="admin-ov">
+  <div class="sheet" id="admin-sh" style="max-height:92vh">
+    <div class="handle"></div>
+    <div class="mt">⚙️ Admin Panel</div>
+    <div class="ms">PPL Ludo Master Admin — Pioneer LT 12</div>
+
+    <div class="adm-section">
+      <div class="adm-section-title">Points per P2P Meeting</div>
+      <input type="number" id="adm-pts" class="adm-num" value="1000" min="100" step="100">
+      <div class="adm-warn">⚠️ July 12 automatically awards HALF this value</div>
+    </div>
+
+    <div class="adm-section">
+      <div class="adm-section-title">Arm Members (5 per arm)</div>
+      <div id="adm-arms"></div>
+    </div>
+
+    <div class="mbs">
+      <button class="bc" onclick="closeAdmin()">Cancel</button>
+      <button class="bk" onclick="adminSave()" style="background:#27ae60">Save & Apply ✓</button>
+    </div>
+    <button class="adm-reset" onclick="adminReset()">🗑 Reset All Progress Data</button>
+  </div>
+</div>
 </div>
 
 <script>
 const USER = {name:"Abhishek Shah", team:"Director"};
 const TODAY = new Date().toISOString().slice(0,10);
+const LAST_DAY = '2026-07-12';
+
+// Configurable points — persisted in localStorage
+let PTS_PER_MEET = parseInt(localStorage.getItem('ppl_pts')||'1000');
+function getPts(){ return TODAY===LAST_DAY ? Math.round(PTS_PER_MEET/2) : PTS_PER_MEET; }
+const MET_PTS = {}; // {memberName: ptsEarned} — actual pts per confirmed meeting
+function getTotalPts(){ return Object.values(MET_PTS).reduce((s,p)=>s+p,0); }
 
 // -- ARMS: 4+4+4+3=15 -------------------------------------
 // SPECIAL members (guaranteed 1 per board, 1000 pts): Dr Swagat Shah, Timir Shah, Dhruv Shah, Ketan Shah
@@ -403,6 +455,44 @@ const MEET_LOG = {};
 MEET_LOG["2026-06-14"] = 1;
 MEET_LOG["2026-06-18"] = 2;
 MEET_LOG["2026-06-25"] = 1;
+
+// Load persisted data from localStorage
+(function loadSaved(){
+  try{
+    const sp=localStorage.getItem('ppl_pts');
+    if(sp) PTS_PER_MEET=parseInt(sp);
+    const mp=localStorage.getItem('ppl_met_pts');
+    if(mp){
+      const o=JSON.parse(mp);
+      Object.entries(o).forEach(([n,p])=>{MET_PTS[n]=p; MET.add(n);});
+    }
+    const ml=localStorage.getItem('ppl_log');
+    if(ml) Object.assign(MEET_LOG,JSON.parse(ml));
+    const ca=localStorage.getItem('ppl_arms');
+    if(ca){
+      const d=JSON.parse(ca);
+      Object.keys(d).forEach(k=>{if(ARMS[k]) ARMS[k].members=d[k];});
+    }
+    // Recalculate goti steps from loaded MET data
+    Object.keys(ARMS).forEach(k=>{
+      GOTI_STEPS[k]=ARMS[k].members.filter(m=>MET.has(m.name)).length;
+    });
+  }catch(e){ console.warn('Load error',e); }
+})();
+
+function saveData(){
+  try{
+    localStorage.setItem('ppl_met_pts', JSON.stringify(MET_PTS));
+    localStorage.setItem('ppl_log', JSON.stringify(MEET_LOG));
+    localStorage.setItem('ppl_pts', String(PTS_PER_MEET));
+  }catch(e){}
+}
+
+function showToast(msg, dur=2200){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), dur);
+}
 
 let SEL=null, PHOTO=null;
 
@@ -584,7 +674,7 @@ function updateStats(){
     a.members.forEach(m=>{total++;if(MET.has(m.name)){met++;byCnt[k]++;}});
   });
   const pct=total?Math.round(met/total*100):0;
-  const pts=met*1000;
+  const pts=getTotalPts();
   document.getElementById('prog-ct').textContent=met+' / '+total+' Met';
   document.getElementById('prog-fill').style.width=pct+'%';
   document.getElementById('met-num').textContent=pts.toLocaleString();
@@ -597,7 +687,7 @@ function updateStats(){
 function renderScores(){
   const el=document.getElementById('scores-list');
   const total=Object.values(ARMS).reduce((s,a)=>s+a.members.length,0);
-  const userMet=MET.size, userPts=userMet*1000;
+  const userMet=MET.size, userPts=getTotalPts();
 
   // Per-arm breakdown for the current user
   const armRows=Object.entries(ARMS).map(([k,a])=>{
@@ -674,11 +764,10 @@ function renderCalendar(){
 
 // -- PROFILE -----------------------------------------------
 function renderProfile(){
-  let met=0,pts=0;
-  Object.values(ARMS).forEach(a=>a.members.forEach(m=>{if(MET.has(m.name)){met++;pts+=1000;}}));
+  const met=MET.size;
   const tot=Object.values(ARMS).reduce((s,a)=>s+a.members.length,0);
   document.getElementById('pf-met').textContent=met+' / '+tot;
-  document.getElementById('pf-pts').textContent=pts.toLocaleString()+' pts';
+  document.getElementById('pf-pts').textContent=getTotalPts().toLocaleString()+' pts';
 }
 
 // -- MODAL -------------------------------------------------
@@ -692,6 +781,14 @@ function openModal(mem,armKey){
   document.getElementById('pa').innerHTML='<div class="pi">&#128248;</div><div class="pt">Tap to upload selfie as proof</div>';
   document.getElementById('pa').classList.remove('hp');
   document.getElementById('bok').disabled=true;
+  const todayPts=getPts();
+  const ptsEl=document.getElementById('modal-pts');
+  if(TODAY===LAST_DAY){
+    ptsEl.innerHTML='+'+todayPts.toLocaleString()+
+      ' <span style="font-size:.62rem;color:#e74c3c;font-family:Rajdhani,sans-serif">½ pts — last day!</span>';
+  } else {
+    ptsEl.textContent='+'+todayPts.toLocaleString();
+  }
   document.getElementById('ov').classList.add('open');
 }
 function closeModal(){document.getElementById('ov').classList.remove('open');SEL=null;PHOTO=null;}
@@ -707,31 +804,114 @@ function confirmMeet(){
   if(!SEL||!PHOTO)return;
   const arm=ARMS[SEL.armKey];
   const memName=SEL.mem.name;
+  const earnedPts=getPts();
   MET.add(memName);
+  MET_PTS[memName]=earnedPts;
   MEET_LOG[TODAY]=(MEET_LOG[TODAY]||0)+1;
-  // Goti steps = count of met members in this arm (0-4 on path, 5 = HOME)
   GOTI_STEPS[SEL.armKey]=ARMS[SEL.armKey].members.filter(m=>MET.has(m.name)).length;
+  saveData();
   closeModal();
   renderBoard();
   renderGotis();
   updateStats();
   const atHome=GOTI_STEPS[SEL.armKey]>=5;
-  const totalPts=MET.size*1000;
+  const totalPts=getTotalPts();
+  const isHalfDay=TODAY===LAST_DAY;
   const cel=document.getElementById('cel');
   if(atHome){
     cel.style.background='linear-gradient(160deg,rgba(0,0,0,.9) 40%,'+arm.hex+'66 100%)';
     document.getElementById('cel-icon').innerHTML=arm.icon+' 🏠';
     document.getElementById('cel-msg').innerHTML='🎉 Congratulations!<br>Your '+arm.label+' Goti is HOME!';
-    document.getElementById('cel-sub').innerHTML=memName+' met — all 5 '+arm.label+' members done!<br>Total: <b>'+totalPts.toLocaleString()+' pts</b>';
+    document.getElementById('cel-sub').innerHTML=memName+' met — all 5 '+arm.label+' members done!'
+      +(isHalfDay?'<br><span style="color:#ffcc00">½ pts day: +'+earnedPts.toLocaleString()+'</span>':'')
+      +'<br>Total: <b>'+totalPts.toLocaleString()+' pts</b>';
   } else {
     cel.style.background='rgba(0,0,0,.85)';
-    document.getElementById('cel-icon').innerHTML='🎲';
-    document.getElementById('cel-msg').innerHTML='+1,000 Points Received!';
+    document.getElementById('cel-icon').innerHTML=isHalfDay?'⚡':'🎲';
+    document.getElementById('cel-msg').innerHTML=isHalfDay
+      ? '½ Points Day!<br>+'+earnedPts.toLocaleString()+' Received'
+      : '+'+earnedPts.toLocaleString()+' Points Received!';
     document.getElementById('cel-sub').innerHTML=memName+' logged! '+arm.label+' Step '+GOTI_STEPS[SEL.armKey]+'/5<br>Total: <b>'+totalPts.toLocaleString()+' pts</b>';
   }
   cel.classList.add('show');
 }
 function closeCelebrate(){document.getElementById('cel').classList.remove('show');}
+
+// -- ADMIN -------------------------------------------------
+let _taps=0, _tapTimer=null;
+function logoTap(){
+  _taps++;
+  clearTimeout(_tapTimer);
+  _tapTimer=setTimeout(()=>{ _taps=0; }, 2500);
+  if(_taps>=5){
+    _taps=0;
+    const pw=prompt('🔐 Admin Password:');
+    if(pw==='PPL2026') openAdmin();
+    else if(pw!==null) showToast('Wrong password');
+  }
+}
+
+function openAdmin(){
+  document.getElementById('adm-pts').value=PTS_PER_MEET;
+  const el=document.getElementById('adm-arms');
+  el.innerHTML=Object.entries(ARMS).map(([k,a])=>
+    '<div class="adm-arm">'+
+    '<div class="adm-arm-hdr" style="background:'+a.hex+'">'+a.icon+' '+a.label+' Arm</div>'+
+    a.members.map((m,i)=>
+      '<div class="adm-mem-row">'+
+      '<input class="adm-inp" id="adm-'+k+'-'+i+'-n" value="'+m.name+'" placeholder="Member name">'+
+      '<input class="adm-inp" id="adm-'+k+'-'+i+'-t" value="'+m.team+'" placeholder="Team / company">'+
+      '</div>'
+    ).join('')+
+    '</div>'
+  ).join('');
+  document.getElementById('admin-ov').classList.add('open');
+}
+
+function closeAdmin(){ document.getElementById('admin-ov').classList.remove('open'); }
+
+function adminSave(){
+  // Update pts
+  const newPts=parseInt(document.getElementById('adm-pts').value)||1000;
+  PTS_PER_MEET=newPts;
+  localStorage.setItem('ppl_pts',String(PTS_PER_MEET));
+  // Update arm members
+  const newArms={};
+  Object.keys(ARMS).forEach(k=>{
+    const updated=ARMS[k].members.map((m,i)=>({
+      name:(document.getElementById('adm-'+k+'-'+i+'-n').value.trim()||m.name),
+      team:(document.getElementById('adm-'+k+'-'+i+'-t').value.trim()||m.team),
+      special:m.special
+    }));
+    ARMS[k].members=updated;
+    newArms[k]=updated;
+  });
+  localStorage.setItem('ppl_arms',JSON.stringify(newArms));
+  // Recalculate goti steps
+  Object.keys(ARMS).forEach(k=>{
+    GOTI_STEPS[k]=ARMS[k].members.filter(m=>MET.has(m.name)).length;
+  });
+  closeAdmin();
+  renderBoard(); renderGotis(); updateStats();
+  showToast('✅ Settings saved! Pts/P2P: '+PTS_PER_MEET);
+}
+
+function adminReset(){
+  if(!confirm('Reset ALL progress? This clears all logged meetings. Cannot be undone.')) return;
+  ['ppl_met_pts','ppl_log','ppl_pts','ppl_arms'].forEach(k=>localStorage.removeItem(k));
+  MET.clear();
+  Object.keys(MET_PTS).forEach(k=>delete MET_PTS[k]);
+  Object.keys(MEET_LOG).forEach(k=>{if(k.startsWith('2026'))delete MEET_LOG[k];});
+  Object.keys(GOTI_STEPS).forEach(k=>{ GOTI_STEPS[k]=0; });
+  PTS_PER_MEET=1000;
+  closeAdmin();
+  renderBoard(); renderGotis(); updateStats();
+  showToast('🗑 All progress reset');
+}
+
+document.getElementById('admin-ov').addEventListener('click',function(e){
+  if(e.target===this) closeAdmin();
+});
 
 renderBoard();
 renderGotis();
