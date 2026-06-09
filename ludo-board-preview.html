@@ -596,30 +596,43 @@ function updateStats(){
 // -- SCORES ------------------------------------------------
 function renderScores(){
   const el=document.getElementById('scores-list');
-  // Build leaderboard from all members + current user's MET data
-  const all=[];
-  Object.entries(ARMS).forEach(([k,a])=>{
-    a.members.forEach(m=>{
-      const metCount=MET.has(m.name)?1:0; // placeholder: in real app, each user has their own score
-      all.push({name:m.name,team:m.team,met:metCount,pts:metCount*1000,color:k});
-    });
-  });
-  // Add current user
-  let userMet=MET.size,userPts=userMet*1000;
-  all.unshift({name:USER.name,team:USER.team,met:userMet,pts:userPts,color:'G',isUser:true});
-  const data=all.sort((a,b)=>b.pts-a.pts).slice(0,10);
-  const medals=['🥇','🥈','🥉'];
   const total=Object.values(ARMS).reduce((s,a)=>s+a.members.length,0);
-  el.innerHTML=data.map((p,i)=>{
-    const arm=ARMS[p.color];
-    return '<div class="score-card'+(p.isUser?' ':"")+'">'+
-      '<div class="rank">'+(i<3?medals[i]:(i+1))+'</div>'+
-      '<div class="rank-dot" style="background:'+arm.hex+'"></div>'+
-      '<div style="flex:1;min-width:0"><div class="sc-name">'+p.name+(p.isUser?' 👤':'')+'</div>'+
-      '<div class="sc-team">'+p.team+'</div></div>'+
-      '<div style="text-align:right"><div class="sc-pts">'+p.pts.toLocaleString()+' pts</div>'+
-      '<div class="sc-met">'+p.met+'/'+total+' met</div></div></div>';
+  const userMet=MET.size, userPts=userMet*1000;
+
+  // Per-arm breakdown for the current user
+  const armRows=Object.entries(ARMS).map(([k,a])=>{
+    const metInArm=a.members.filter(m=>MET.has(m.name)).length;
+    const done=metInArm>=5;
+    return '<div class="score-card" style="'+(done?'border-left:4px solid '+a.hex+';':'')+'">'+
+      '<div class="rank-dot" style="background:'+a.hex+';width:14px;height:14px;border-radius:50%;flex-shrink:0"></div>'+
+      '<div style="flex:1;min-width:0;margin-left:.5rem">'+
+        '<div class="sc-name">'+a.label+' Arm'+(done?' 🏠':'')+'</div>'+
+        '<div class="sc-team">'+a.members.map(m=>{
+          const met=MET.has(m.name);
+          return '<span style="'+(met?'color:'+a.hex+';font-weight:700':'color:#bbb')+'">'
+            +m.name.split(' ')[0]+'</span>';
+        }).join(' · ')+'</div>'+
+      '</div>'+
+      '<div style="text-align:right">'+
+        '<div class="sc-pts" style="color:'+(done?a.hex:'#27ae60')+'">'+
+          (metInArm*1000).toLocaleString()+' pts</div>'+
+        '<div class="sc-met">'+metInArm+'/5 met</div>'+
+      '</div></div>';
   }).join('');
+
+  el.innerHTML=
+    '<div class="score-card" style="background:linear-gradient(135deg,#f0fff4,#fff);border:2px solid #27ae60;margin-bottom:.3rem">'+
+      '<div class="rank">👤</div>'+
+      '<div style="flex:1;min-width:0;margin-left:.3rem">'+
+        '<div class="sc-name">'+USER.name+'</div>'+
+        '<div class="sc-team">'+USER.team+' · '+userMet+'/'+total+' members met</div>'+
+      '</div>'+
+      '<div style="text-align:right">'+
+        '<div class="sc-pts" style="font-size:1.1rem">'+userPts.toLocaleString()+' pts</div>'+
+        '<div class="sc-met">Total score</div>'+
+      '</div>'+
+    '</div>'+
+    armRows;
 }
 
 // -- CALENDAR ----------------------------------------------
